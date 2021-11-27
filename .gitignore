@@ -1,0 +1,14 @@
+data
+data/*
+Backup
+Junkka
+Junkka/*
+tmp
+tmp/*
+Abstracts
+Abstracts/*
+*.tex
+*.out
+*.aux
+*.blg
+*.docx
