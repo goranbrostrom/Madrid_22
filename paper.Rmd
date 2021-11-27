@@ -1,0 +1,225 @@
+---
+title: "A biometric analysis of infant mortality and temperature, northern Sweden 1895-1950"
+author: "Göran Broström and Tommy Bengtsson"
+date: "`r Sys.Date()`"
+output:
+  bookdown::pdf_document2:
+    citation_package: natbib
+    keep_tex: yes
+    number_sections: yes
+    toc: no
+    toc_depth: 2
+  bookdown::word_document2:
+    toc: no
+    toc_depth: 2
+  bookdown::html_document2:
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+citation_package: natbib
+classoption: titlepage
+bibliography: bio.bib
+titlepage: yes
+biblio-style: apalike
+documentclass: article
+fontsize: 11pt
+header-includes:
+- \usepackage[utf8]{inputenc}
+- \usepackage{graphicx}
+abstract: "The effect of extreme temperatures on infant mortality in the Umeå region 1895-1950 is studied in a biometric analysis setting."
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.path='figs/',fig.height=4,comment=NA)
+library(knitr)
+library(eha)
+g <- function(x) (log(1 + 365 * x))^3
+ginv <- function(y) (1 / 365) * (exp(y^(1/3)) - 1)
+```
+
+# Introduction
+
+The impact of ambient temperature variations on infant mortality is studied for 
+a northern Sweden coastal area, the Umeå and Skellefteå regions, during the 
+first half of the twentieth century. Two recent papers [@junkka; @karlsson] studied 
+neonatal mortality and climate variations in the same geographical area during the 
+years 1880--1950. Climate and mortality in general is a research area that has 
+generated great interest over the last years, see @tbgb10.
+
+The effect of seasonal variation and the occurrence of extreme monthly temperatures
+is studied and interacted with sex, social class, and legitimacy. Studies are performed 
+separatelyfor neonatal  and post-neonatal mortality, and for winter and summer seasons, 
+and in a joint analysis, the classification into endogenous and exogenous factors will be discussed.
+
+# The Bourgeouis-Pichat model and the approximation
+
+A variation of the Bourgeouis-Pichat (B-P) biometric analysis [@bp51a;
+@bp51b] of infant mortality is suggested. B-P suggests that mortality
+during the last eleven months of infancy follows a *uniform* distribution
+given a specific transformation of time (age), the 
+*log-cube ("BP") transformation*. We show the BP transformation is closely approximated by
+an *exponential distribution*, 
+that is, the *cumulative hazards function* is linear.
+ The advantage is that estimation of exogeneous and
+endogeneous infant mortality is easily performed with standard survival
+analysis programs.
+
+Central in the *Bourgeouis-Pichat (B-P)* model is the *log-cube* time transform $g$:
+
+\begin{equation*}\label{eq:g}
+g(t) = \log^3(1 + 365 t), \quad 0 \le t \le 1,
+\end{equation*}
+
+where $t$ is age measured in *years*. 
+Its graph is shown in Figure \@ref(fig:figgraph).
+
+```{r figgraph, fig.cap = "The log-cube transform g."}
+##g <- function(x) (log(1 + x))^3  # Note: days!
+x <- seq(0, 1, length = 1000)
+y <- g(x)
+plot(x, y, type = "l", xlab = "age (days)", ylab = "g(age)", axes = FALSE, col = "blue")
+xat <- c(0, 28 / 365, 1 / 2, 1)
+yat <- g(xat)
+axis(1, at = xat, labels = round(365 * xat, 3))
+axis(2, at = yat, labels = round(yat, 1), las = 2)
+box()
+lines(c(30, 30), c(0, g(30)), lty = 2, col = "darkgreen")
+lines(c(0, 30), c(g(30), g(30)), lty = 2, col = "darkgreen")
+abline(h = 0, v = 0)
+```
+
+The B-P model specifies that, on the transformed age scale, the *exogeneous*
+mortality distribution, conditional on death before age one,  is *uniform*, that is, the 
+survivor function of $T$ is *linear*.
+
+\begin{equation}
+S(t) = 1 - \alpha t, \, 0 < t < g(1).
+\end{equation}
+
+Furthermore, it is assumed that the *endogeneous* component is non-zero only during the first
+month of life.
+
+It seems to fit infant mortality data very well, but one drawback with it is that the 
+uniform distribution is not easy to work with in a survival analysis context.
+
+However, we show that the BP transformation is well approximated by a model where the 
+*cumulative hazards function* is linear instead, that is, an *exponential distribution*,
+easy to use in standard survival regression analysis, often allowing for massive data reduction
+through the statistical *sufficency pinciple*. 
+
+# Data 
+
+## Infant Mortality
+
+```{r readdata}
+infdat <- readRDS("data/infdat.rds")
+```
+
+From the Umeå-Skellefteå region, we follow all persons born in the 
+region 1895--1950 until death, reaching the age of 1, or leaving follow-up for whatever 
+reason, whichever comes first.
+
+Figure \@ref(fig:mortstat) shows the average monthly crude infant mortality, and a clear seasonal pattern is visible.
+
+```{r mortstat, fig.cap = "Crude infant mortality by week of year, Umeå/Skellefteå 1895--1950."}
+tid <- toTpch(Surv(enter, exit, event) ~ week, data =  infdat, cuts = c(0, 1))
+y <- tid$event / tid$exposure
+plot(1:52, y, type = "b", col = "blue", axes = FALSE, ylim = c(min(y), max(y)),
+     xlab = "Week", ylab = "IMR")
+axis(1, at = c(1, 10, 20, 30, 40, 52))
+axis(2, las = 1)
+abline(h = c(0.05, 0.06, 0.07, 0.08, 0.09), lty = 3)
+box()
+```
+
+In accordance with the Bourgeouis-Picat ideas, we group the analyses into two parts, 
+*neonatal* (first 28 days) och *postneonatal* mortality (days 29--365).
+
+### Neonatal mortality
+
+The average monthly neonatal mortality is shown in Figure \@ref(fig:neodata).
+
+```{r neodata, fig.cap = "Crude neonatal mortality by week of year, Umeå/Skellefteå 1895--1950."}
+neo <- age.window(infdat, c(0, 28 / 365))
+tneo <- toTpch(Surv(enter, exit, event) ~ week, data = neo, cuts = c(0, 28 / 365))
+y <- tneo$event / tneo$exposure
+plot(1:52, y, type = "b", col = "blue", axes = FALSE, ylim = c(min(y), max(y)),
+     xlab = "Week", ylab = "IMR")
+axis(1, at = c(1, 10, 20, 30, 40, 52))
+axis(2, las = 1)
+abline(h = c(0.05, 0.06, 0.07, 0.08, 0.09), lty = 3)
+box()
+```
+
+The seasonal pattern is similar to the one we found above for infant mortality.
+
+## Postneonatal mortality
+
+The average monthly postneonatal mortality is shown in Figure \@ref(fig:pneodata).
+
+```{r pneodata, fig.cap = "Crude postneonatal mortality by week of year, Umeå/Skellefteå 1895--1950."}
+pneo <- age.window(infdat, c(28 / 365, 1))
+tpneo <- toTpch(Surv(enter, exit, event) ~ week, data = pneo, cuts = c(28 / 365, 1))
+y <- tpneo$event / tpneo$exposure
+plot(1:52, y, type = "b", col = "blue", axes = FALSE, ylim = c(min(y), max(y)),
+     xlab = "Week", ylab = "IMR")
+axis(1, at = c(1, 10, 20, 30, 40, 52))
+axis(2, las = 1)
+abline(h = c(0.04, 0.05, 0.06, 0.07, 0.08, 0.09), lty = 3)
+box()
+```
+
+The seasonal pattern is once again similar to the one we found for infant mortality.
+
+## Temperature
+
+```{r readtemp}
+umetemp <- readRDS("data/umetemp.rds")
+bjurtemp <- readRDS("data/bjurtemp.rds")
+```
+
+Temperature data are collected from two weather stations, *Umeå* and *Bjuröklubb*
+(used with population data from Skellefteå coastal area). Both stations deliver
+daily temperature data covering our time period, usually three measures per day, morning,
+noon, and evening. Weekly averages are calculated year by year, and deviations from 
+the averages of the weekly averages are used as a time-varying *communal covariate*. See Figure 
+\@ref(fig:monavgtemp) for the monthly distributions.
+
+```{r monavgtemp, fig.cap="Weekly max and min temperature averages, 1895--1950."}
+oldpar <- par(mfrow= c(1, 2))
+## Umeå:
+umaxavg <- umetemp$emaxtemp[1:52]
+uminavg <- umetemp$emintemp[1:52]
+plot(1:52, umaxavg, ylim = c(-20, 30), type = "b", col = "red", axes = FALSE,
+     xlab = "Week", ylab = "Temperature (C)")
+text(17, 27, "Umeå")
+axis(1, at = c(1, 10, 29, 43, 52))
+axis(2, las = 1)
+abline(h = 0)
+abline(v = 29, lty = 3)
+abline(h = c(-20, -10, 10, 20), lty = 3)
+lines(1:52, uminavg, type = "b", col = "blue")
+text(8, 11, "max", col = "red")
+text(20, -9, "min", col = "blue")
+box()
+## Skellefteå:
+bmaxavg <- bjurtemp$emaxtemp[1:52]
+bminavg <- bjurtemp$emintemp[1:52]
+plot(1:52, bmaxavg, ylim = c(-20, 30), type = "b", col = "red", axes = FALSE,
+     xlab = "Week", ylab = "Temperature (C)")
+text(17, 27, "Skellefteå")
+axis(1, at = c(1, 10, 29, 43, 52))
+axis(2, las = 1)
+abline(h = 0)
+abline(v = 29, lty = 3)
+abline(h = c(-20, -10, 10, 20), lty = 3)
+lines(1:52, bminavg, type = "b", col = "blue")
+text(8, 11, "max", col = "red")
+text(20, -9, "min", col = "blue")
+box()
+##
+par(oldpar)
+```
+
+

@@ -1,0 +1,196 @@
+---
+title: "Get population and temperature data, version 2"
+author: "Göran Broström"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(knitr)
+library(eha)
+library(skum)
+options(show.signif.stars = FALSE)
+g <- function(x) (log(1 + 365 * x))^3
+```
+
+# Introduction
+
+The only (so far) difference compared to the article "getdata.Rmd" is that time 
+here is measured in *days* instead of in a fraction of a year.
+
+# Population data
+
+We use the observation file rather than the  population file, so we can get 
+correct parish information.
+
+```{r readobs}
+bb <- obs$id[obs$starttyp == 2]
+births <- obs[obs$id %in% bb, 
+    c("id", "sex", "foddat", "startdat", "slutdat", "nofrs", "sluttyp", "socStatus", "hisclass", 
+      "ort", "ortnmn")]
+births$event <- as.numeric(births$sluttyp == 2)
+## New start in days...:
+births$enter <- as.numeric(with(births, difftime(startdat, foddat, unit = "days")))
+births$exit <- as.numeric(with(births, difftime(slutdat, foddat, unit = "days")))
+births <- age.window(births, c(0, 365))
+births <- births[order(births$id, births$enter), ]
+##indx <- tapply(births$id, births$id)
+##births$mexit <- tapply(births$exit, births$id, max)[indx]
+##births$mevent <- tapply(births$event, births$id, max)[indx]
+##births <- births[!duplicated(births$id), ]
+### Deaths:
+did <- unique(births$id[births$event == 1])
+deaths <- births[births$id %in% did, ]
+indx <- tapply(deaths$id, deaths$id)
+deaths$menter <- tapply(deaths$enter, deaths$id, min)[indx]
+deaths <- deaths[!duplicated(deaths$id), ]
+deaths$enter <- deaths$menter
+deaths$menter <- NULL
+deaths$enter <- 0 ## satisfied....
+### Survivors:
+survs <- births[!(births$id %in% did), ]
+indx <- tapply(survs$id, survs$id)
+survs$mexit <- tapply(survs$exit, survs$id, max)[indx]
+survs <- survs[!duplicated(survs$id), ]
+survs$exit <- survs$mexit
+survs$mexit <- NULL
+survs$enter <- 0 ## Ok ...
+### Now, give birth to NEW births:
+births <- rbind(deaths, survs)
+births <- births[births$foddat > as.Date("1894-12-31"), ]
+
+indx <- match(births$id, pers$id)
+births$ab <- pers$ab[indx]
+##births$df <- pers$df[indx]
+births$illeg <- factor(births$ab == 2, labels = c("no", "yes"))
+births$ab <- NULL
+births$sluttyp <- NULL
+births$parity <- pers$paritet_g[indx]
+summary(births)                                
+```
+
+We put on 'subreg':
+
+```{r subreg}
+births$subreg <- factor(births$nofrs)
+levels(births$subreg) <- c(rep("ume", 2), rep("bjur", 4), rep("sten", 3))
+## Remove "sten":
+births <- births[births$subreg != "sten", ]
+births$subreg <- factor(births$subreg) # Remove level "sten"
+```
+
+# Neonatal mortality, an overview
+
+```{r neo, fig.cap = "Neonatal mortality by year, all regions."}
+neo <- births
+neo$exit <- neo$exit / 365
+neo$birthdate <- toTime(neo$foddat)
+neo <- age.window(neo, c(0, 28 / 365))
+##neo$exit <- 365 * neo$exit
+surv <- as.matrix(neo[, c("enter", "exit", "event", "birthdate")])
+pall <- perstat(surv, period = 1900:1951)$intensity
+plot(1900:1950, pall, type = "b", ylim = c(0, 0.5), col = "blue", xlab = "Year",
+     ylab = "Mortality")
+abline(h = 0)
+abline(h = 0.3, lty = 3)
+```
+
+## By region
+
+```{r neoby, fig.cap = "Neonatal mortality by year  and region."}
+usurv <- as.matrix(neo[neo$subreg == "ume", c("enter", "exit", "event", "birthdate")])
+pume <-  perstat(usurv, period = 1900:1951)$intensity
+plot(1900:1950, pall, type = "b", ylim = c(0, 0.7), col = "blue", xlab = "Year",
+     ylab = "Mortality")
+bsurv <- as.matrix(neo[neo$subreg == "bjur", c("enter", "exit", "event", "birthdate")])
+pjur <-  perstat(bsurv, period = 1900:1951)$intensity
+lines(1900:1950, pjur, type = "b", ylim = c(0, 0.5), col = "red")
+##ssurv <- as.matrix(neo[neo$subreg == "sten", c("enter", "exit", "event", "birthdate")])
+##sjur <-  perstat(ssurv, period = 1900:1951)$intensity
+##lines(1900:1950, sjur, type = "b", ylim = c(0, 0.5), col = "black")
+abline(h = 0)
+abline(h = 0.3, lty = 3)
+```
+
+
+
+# Post-neonatal mortality, an overview
+
+```{r pnneo, fig.cap = "Post-eonatal mortality by year, all regions."}
+pneo <- age.window(births, c(1 / 13, 1))
+surv <- as.matrix(pneo[, c("enter", "exit", "event", "birthdate")])
+pall <- perstat(surv, period = 1900:1951)$intensity
+plot(1900:1950, pall, type = "b", ylim = c(0, 0.1), col = "blue",
+     xlab = "Year", ylab = "Mortality")
+abline(h = 0)
+abline(h = 0.3, lty = 3)
+```
+
+## By region
+
+```{r pneoby, fig.cap = "Post-neonatal mortality by year and regions."}
+usurv <- as.matrix(pneo[pneo$subreg == "ume", c("enter", "exit", "event", "birthdate")])
+pume <-  perstat(usurv, period = 1900:1951)$intensity
+plot(1900:1950, pall, type = "b", ylim = c(0, 0.1), col = "blue",
+     xlab = "Year", ylab = "Mortality")
+bsurv <- as.matrix(pneo[pneo$subreg == "bjur", c("enter", "exit", "event", "birthdate")])
+pjur <-  perstat(bsurv, period = 1900:1951)$intensity
+lines(1900:1950, pjur, type = "b", ylim = c(0, 0.5), col = "red")
+##ssurv <- as.matrix(pneo[pneo$subreg == "sten", c("enter", "exit", "event", "birthdate")])
+##sjur <-  perstat(ssurv, period = 1900:1951)$intensity
+##lines(1900:1950, sjur, type = "b", ylim = c(0, 0.5), col = "black")
+abline(h = 0)
+abline(h = 0.3, lty = 3)
+```
+
+
+# Temperature data
+
+We have two stations, *Umeå* and *Bjuröklubb*.
+
+
+```{r gettemp}
+source("R/tempdat.R")
+umetemp <- tempdat("ume", c(1895, 1950))
+bjurtemp <- tempdat("bjur", c(1895, 1950))
+##stentemp <- tempdat("~/Forskning/Data/sten_temp.csv", c(1899, 1952))
+saveRDS(umetemp, file = "data/umetemp.rds")
+saveRDS(bjurtemp, file = "data/bjurtemp.rds")
+```
+
+# Make communal
+
+```{r makecommunal}
+##source("R/make_comm.R")
+lagg <- 3 / 365  ## NOTE!!
+## Ume:
+bume <- births[births$subreg == "ume", ]
+bume <- make.communal(bume, umetemp["heat"], start = 1895, period = 1/52, lag = lagg)
+bume <- bume[bume$enter < bume$exit, ]
+bume <- make.communal(bume, umetemp["cold"], start = 1895, period = 1 / 52, lag = lagg)
+bume <- bume[bume$enter < bume$exit, ]
+bume <- make.communal(bume, umetemp["week"], start = 1895, period = 1 / 52, lag = lagg)
+bume <- bume[bume$enter < bume$exit, ]
+### Ske:
+bskel <- births[births$subreg == "bjur", ]
+bskel <- make.communal(bskel, bjurtemp["heat"], start = 1895, period = 1/52, lag = lagg)
+bskel <- bskel[bskel$enter < bskel$exit, ]
+bskel <- make.communal(bskel, bjurtemp["cold"], start = 1895, period = 1 / 52, lag = lagg)
+bskel <- bskel[bskel$enter < bskel$exit, ]
+bskel <- make.communal(bskel, bjurtemp["week"], start = 1895, period = 1 / 52, lag = lagg)
+bskel <- bskel[bskel$enter < bskel$exit, ]
+##bsten <- births[births$subreg == "sten", ]
+##bsten <- make_comm(bsten, stentemp, start = 1899, period = 1/52, lag = lagg)
+bume$region <- "ume"
+bskel$region <- "ske"
+infdat <- rbind(bume, bskel)
+infdat <- infdat[order(infdat$id, infdat$enter), c("region", "id", "sex", "enter", "exit", "event", 
+                                                   "birthdate", "socStatus", "hisclass", "illeg",
+                                                   "parity", "heat", "cold", "week")]
+saveRDS(infdat, file = "data/infdat.rds")
+```
+
+Done!
