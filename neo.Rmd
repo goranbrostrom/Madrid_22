@@ -106,13 +106,13 @@ tneo <- toTpch(Surv(enter, exit, event) ~
 dim(tneo)
 head(tneo)
 summary(tneo)
-saveRDS(tneo, file = "data/tneo.rds")
+saveRDS(tneo, file = "t_data/tneo.rds")
 ```
 
 Note how it works: For each combination of *socStatus*, *illeg*, *parity* *cold*
-(*cold* is temperature above minimum average), and *age*, the number of deaths (*event*)
+(*cold* is temperature above average minimum), and *age*, the number of deaths (*event*)
 and the *exposure* time (in days) are calculated. Note that the tabulated data frame is 
-a tenth in size compared to the original file, and it is also *anonymised*.
+a tenth in size compared to the original file, and it is also *anonymous*.
 
 So, it should not be any problem with public distribution of the tabulated data. 
 
@@ -182,3 +182,60 @@ but estimation and plotting of baseline distributions are tedious.
 However, starting with the non-tabulated data frame, everything is straightforward using
 *eha::coxreg* with *method = "ml"* ("maximum likelihood"). Recommended for
 the logistic regression approach with discrete time data.
+
+# Effects of time transformation and tabular data.
+
+As an example of time transformation, we study the *log-cube* transformation used by 
+Bourgeouis-Pichat [@bp51a; @bp51b] in his study of endogeneous and exogeneous 
+factors explaining infant mortality. It is given by
+
+\begin{equation}
+g(t) = \bigl(log(1 + t)\bigr)^3, \quad 0 \le t \le 365,
+\end{equation}
+
+where $t$ is measured in days.
+
+So what happens if data are time-transformed before tabulation? Let us see:
+First the transformation of the data frame *neo*:
+
+```{r gtrans}
+g <- function(t) (log(1 + t))^3
+gneo <- neo
+gneo$enter <- g(neo$enter)
+gneo$exit <- g(neo$exit)
+head(gneo)
+```
+
+Next tabulation: We need to transform the chosen cut points, if we want comparability, so
+
+```{r tgneo}
+tgneo <- toTpch(Surv(enter, exit, event) ~ 
+                    sex + socStatus + illeg + parity + cold, 
+               data = gneo, cuts = g(0:28))
+head(tgneo)
+#summary(tgneo)
+```
+
+Note the clumsy levels of the factor *age*. Not important. Let us try a "piecewise constant ..."
+
+```{r tpchreg_g, results = 'asis'}
+(system.time(fit.pch_g <- tpchreg(oe(event, exposure) ~ 
+                                    sex + socStatus + illeg + parity + cold,
+                                time = age, data = tgneo)))
+dr2_g <- drop1(fit.pch_g, test = "Chisq")
+ltx(fit.pch_g, dr = dr2_g, label = "tab:tpchreg_g", 
+    caption = "Piecewise constant proportional hazards model with time transformation.")
+```
+
+Compare the Tables \@ref(tab:tpchreg) and \@ref(tab:tpchreg_g). Identical except for *TTR*
+(Total Time at Risk). And graphs will be stretcehd.
+
+```{r haz_g, fig.cap = "Baseline hazard function, transformed time.",  fig.height = 4}
+par(las = 1)
+plot(fit.pch_g, fn = "haz")
+abline(h = 0)
+```
+
+We can spot how the transformation drives the the hazard function to *constant* 
+over time, say after $ g(t) = 10$, that is, after around 8 days.
+ 

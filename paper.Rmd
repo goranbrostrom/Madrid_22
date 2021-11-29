@@ -133,7 +133,7 @@ abline(h = c(0.05, 0.06, 0.07, 0.08, 0.09), lty = 3)
 box()
 ```
 
-In accordance with the Bourgeouis-Picat ideas, we group the analyses into two parts, 
+In accordance with the Bourgeouis-Pichat ideas, we group the analyses into two parts, 
 *neonatal* (first 28 days) och *postneonatal* mortality (days 29--365).
 
 ### Neonatal mortality

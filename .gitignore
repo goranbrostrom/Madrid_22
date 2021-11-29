@@ -12,3 +12,4 @@ Abstracts/*
 *.aux
 *.blg
 *.docx
+.Rproj.user
