@@ -190,7 +190,7 @@ infdat <- rbind(bume, bskel)
 infdat <- infdat[order(infdat$id, infdat$enter), c("region", "id", "sex", "enter", "exit", "event", 
                                                    "birthdate", "socStatus", "hisclass", "illeg",
                                                    "parity", "heat", "cold", "week")]
-saveRDS(infdat, file = "data/infdat.rds")
+saveRDS(infdat, file = "data/infdat2.rds")
 ```
 
 Done!
