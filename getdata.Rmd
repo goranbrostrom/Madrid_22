@@ -16,6 +16,10 @@ options(show.signif.stars = FALSE)
 g <- function(x) (log(1 + 365 * x))^3
 ```
 
+# Introduction
+
+Note thet we now have corrected the mistake with zero-length intervals.
+
 # Population data
 
 We use the observation file rather than the  population file, so we can get 
