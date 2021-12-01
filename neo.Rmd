@@ -218,21 +218,21 @@ head(tgneo)
 
 Note the clumsy levels of the factor *age*. Not important. Let us try a "piecewise constant ..."
 
-```{r tpchreg_g, results = 'asis'}
-(system.time(fit.pch_g <- tpchreg(oe(event, exposure) ~ 
+```{r tpchreg.g, results = 'asis'}
+(system.time(fit.pch.g <- tpchreg(oe(event, exposure) ~ 
                                     sex + socStatus + illeg + parity + cold,
                                 time = age, data = tgneo)))
-dr2_g <- drop1(fit.pch_g, test = "Chisq")
-ltx(fit.pch_g, dr = dr2_g, label = "tab:tpchreg_g", 
+dr2.g <- drop1(fit.pch.g, test = "Chisq")
+ltx(fit.pch.g, dr = dr2.g, label = "tab:tpchreg.g", 
     caption = "Piecewise constant proportional hazards model with time transformation.")
 ```
 
-Compare the Tables \@ref(tab:tpchreg) and \@ref(tab:tpchreg_g). Identical except for *TTR*
-(Total Time at Risk). And graphs will be stretcehd.
+Compare the Tables \@ref(tab:tpchreg) and \@ref(tab:tpchreg.g). Identical except for *TTR*
+(Total Time at Risk). And graphs will be stretced.
 
-```{r haz_g, fig.cap = "Baseline hazard function, transformed time.",  fig.height = 4}
+```{r haz.g, fig.cap = "Baseline hazard function, transformed time.",  fig.height = 4}
 par(las = 1)
-plot(fit.pch_g, fn = "haz")
+plot(fit.pch.g, fn = "haz")
 abline(h = 0)
 ```
 

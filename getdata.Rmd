@@ -27,6 +27,12 @@ births <- obs[obs$id %in% bb,
     c("id", "sex", "birthdate", "nofrs", "sluttyp", "socStatus", "hisclass", 
       "enter", "exit", "ort", "ortnmn")]
 births$event <- as.numeric(births$sluttyp == 2)
+## NEW (and necessary):
+extend <- with(births, (exit <= enter) & (event == 1))
+births$exit[extend] <- births$enter[extend] + 1 / (4 * 365)
+## NOW, remove all zero-length intervals:
+births <- births[births$exit > births$enter, ]
+## End NEW, now OK to select:
 births <- age.window(births, c(0, 1))
 births <- births[order(births$id, births$enter), ]
 ##indx <- tapply(births$id, births$id)
@@ -154,6 +160,7 @@ saveRDS(bjurtemp, file = "data/bjurtemp.rds")
 ```{r makecommunal}
 ##source("R/make_comm.R")
 lagg <- 3 / 365  ## NOTE!!
+##lagg <- 0
 ## Ume:
 bume <- births[births$subreg == "ume", ]
 bume <- make.communal(bume, umetemp["heat"], start = 1895, period = 1/52, lag = lagg)
