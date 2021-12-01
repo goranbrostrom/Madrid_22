@@ -19,6 +19,6 @@ maxlog <- function(enter, exit, event){
 
 testmk <- function(){
     x <- readRDS("data/infdat.rds")
-    fit <- maxlog(infdat$enter, infdat$exit, infdat$event)
+    fit <- maxlog(infdat$enter, x$exit, x$event)
     fit
 }
