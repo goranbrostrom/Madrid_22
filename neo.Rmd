@@ -60,7 +60,7 @@ infdat <- infdat[infdat$exit > infdat$enter + 1.e-6, ]
 rownames(infdat) <- 1:NROW(infdat)
 NROW(infdat)
 length(unique(infdat$id))
-head(infdat)
+head(infdat) ## OK!
 ```
 
 Then, cut the spells to fit into the first four weeks of life. Use the function 
@@ -69,6 +69,7 @@ Then, cut the spells to fit into the first four weeks of life. Use the function
 ```{r agecut}
 library(eha)
 neo <- age.window(infdat, c(0, 28 / 365))
+## events = 2693
 ```
 
 ## Transform time unit 'years' to 'days' and "round", down and up:
@@ -77,12 +78,13 @@ Note that the original data file measures time in *years*. For neonatal mortalit
 a more convenient time unit is *days*, so we convert and round.
 
 ```{r transform}
-neo$enter <- round(365 * neo$enter)
-neo$exit <- round(365 * neo$exit)
-neo <- neo[neo$exit > neo$enter, ] # Remove zero-length spells
-
+##neo$enter <- round(365 * neo$enter)
+##neo$exit <- round(365 * neo$exit)
+##neo <- neo[neo$exit > neo$enter, ] # Remove zero-length spells
+neo$enter <- 365 * neo$enter
+neo$exit <- 365 * neo$exit
 dim(neo)
-head(neo)
+head(neo) ## OK
 ```
 
 
@@ -94,7 +96,9 @@ order to avoid discussions about missing values and other disturbances.
 ```{r clean}
 neo <- neo[neo$parity > 0, ] # Remove missing = -1
 neo$parity <- cut(neo$parity, c(0, 1.5, 3.5, 18.5), labels = c("1", "2-3", "4+"))
-neo <- neo[!is.na(neo$socStatus), ] # Remove records with missing values
+##neo <- neo[!is.na(neo$socStatus), ] # Remove records with missing values
+## Instead, replace missing socStatus with "low"
+neo$socStatus[is.na(neo$socStatus)] <- "low"
 ```
 
 Next, *tabulate* data with the aid of the function *toTpch*, found in *eha*:
