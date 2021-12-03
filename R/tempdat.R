@@ -1,4 +1,4 @@
-tempdat <- function(filename = "ume", period = c(1895, 1950)){
+tempdat <- function(filename = "ume", period = c(1894, 1951)){
 
     filename <- switch(filename, ume = "~/Forskning/Data/ume_temp.csv",
                        bjur = "~/Forskning/Data/bjur_temp.csv",
