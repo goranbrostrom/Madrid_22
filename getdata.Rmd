@@ -84,6 +84,12 @@ births <- births[births$subreg != "sten", ]
 births$subreg <- factor(births$subreg) # Remove level "sten"
 ```
 
+# Save births
+
+```{r savebirths}
+saveRDS(births, file = "data/births.rds")
+```
+
 # Neonatal mortality, an overview
 
 ```{r neo, fig.cap = "Neonatal mortality by year, all regions."}
