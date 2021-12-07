@@ -17,7 +17,9 @@ tempdat <- function(filename = "ume", period = c(1894, 1951)){
     indx <- tapply(temp$date, temp$date)
     temp$mintemp <- tapply(temp$temp, temp$dat, min)[indx]
     temp$maxtemp <- tapply(temp$temp, temp$dat, max)[indx]
-    temp <- temp[!duplicated(temp$date), c("date", "year", "month", "quarter", "mintemp", "maxtemp")]
+    temp$meantemp <- tapply(temp$temp, temp$dat, mean)[indx]
+    temp <- temp[!duplicated(temp$date), 
+                 c("date", "year", "month", "quarter", "mintemp", "maxtemp", "meantemp")]
     ## Create "week", 1:52 each year, week 52 with 8(9) days:
     get_week <- function(days){ # days = vector of 365 or 366, length of year
         n <- length(days)
@@ -25,21 +27,25 @@ tempdat <- function(filename = "ume", period = c(1894, 1951)){
         tmp[1:n]
     }
     temp$week <- as.numeric(unlist(tapply(temp$year, temp$year, get_week)))
-    ## Calculate weekly extremes of min amd max temp
+    ## Calculate weekly extremes of min and max temp
     wmin <- aggregate(mintemp ~ week + year, data = temp, FUN = min)
     wmax <- aggregate(maxtemp ~ week + year, data = temp, FUN = max)
+    wmean <- aggregate(meantemp ~ week + year, data = temp, FUN = mean)
     ##indx <- tapply(temp$week, temp$week)
     ##wmintemp <- with(temp, tapply(mintemp, list(week, year), min))
     ##wmaxtemp <- with(temp, tapply(maxtemp, list(week, year), max))[indx]
 ######
     temp <- wmin
     temp$maxtemp <- wmax$maxtemp
+    temp$meantemp <- round(wmean$meantemp, 1)
     ##
     indx <- tapply(temp$week, temp$week)
     temp$emintemp <- tapply(temp$mintemp, temp$week, mean)[indx]
     temp$emaxtemp <- tapply(temp$maxtemp, temp$week, mean)[indx]
+    temp$emeantemp <- tapply(temp$meantemp, temp$week, mean)[indx]
     temp$heat <- round(temp$maxtemp - temp$emaxtemp)
     temp$cold <- round(temp$mintemp - temp$emintemp)
+    temp$aver <- round(temp$meantemp - temp$emeantemp)
     ##
     temp
 }

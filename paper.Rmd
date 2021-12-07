@@ -113,7 +113,7 @@ through the statistical *sufficency pinciple*.
 ## Infant Mortality
 
 ```{r readdata}
-infdat <- readRDS("data/infdat.rds")
+infdat <- readRDS("data/infdat2_year.rds")
 ```
 
 From the Umeå-Skellefteå region, we follow all persons born in the 
