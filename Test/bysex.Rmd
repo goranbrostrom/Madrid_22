@@ -1,0 +1,222 @@
+---
+title: "Female advantage in infant survival, Umeå and Skellefteå 1901-1950"
+author: "Göran Broström"
+date: "`r Sys.Date()`"
+output:
+  bookdown::pdf_document2:
+    citation_package: natbib
+    keep_tex: yes
+    number_sections: yes
+    toc: no
+    toc_depth: 2
+  bookdown::word_document2:
+    toc: no
+    toc_depth: 2
+  bookdown::html_document2:
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+citation_package: natbib
+bibliography: ../bio.bib
+biblio-style: apalike
+documentclass: article
+fontsize: 11pt
+header-includes:
+- \usepackage[utf8]{inputenc}
+- \usepackage{graphicx}
+- \usepackage{a4wide}
+abstract: "Is the female advantage in infant survival constant over time? Investigation of Umeå and Skellefteå 1901-1950. The answer is 'yes'."
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = NA)
+dt <- function(x, y) as.numeric(difftime(x, y, unit = "days")) # wrapper of 'difftime'
+```
+
+# Introduction
+
+The following presentation relates to infants *born* in the parish(es) we investigate.
+They are the parishes with codes 82750, 82780 (`ume`) and 82980, 82981, 82983, 82988 (`ske`).
+
+The **R** code generating the output is given throughout, it gets a little bit messy, maybe.
+I am using the **R** [@cran] package *eha* [@ehar2; @eha] for the analyses.
+
+It is all about creating tables of number of *deaths* and total *exposure* time by *sex* and *year*.
+And running *Poisson regression* on the tables.
+
+# Get data
+
+Data are extracted from *DDB-uttaget U15014* [@u15014], which is transformed into an **R** package *skum*, available on request.
+
+```{r readdata}
+library(skum)
+births.id <- obs$id[obs$starttyp == 2] # ID of Born in parish
+births <- obs[obs$id %in% births.id, # Records of born in parish
+              c("id", "sex", "foddat", "startdat", "slutdat", 
+                "sluttyp", "nofrs")]
+births$enter <- with(births, dt(startdat, foddat)) # Tid i dagar
+births$exit <- with(births, dt(slutdat, foddat))
+births$event <- births$sluttyp == 2 # event == death
+## Fix deaths at foddat: (Problem: age at death? 6 hours?)
+fix <- (births$startdat >= births$slutdat) & births$event
+births$exit[fix] <- births$enter[fix] + 6 / 24 # Add 6 hours
+births <- births[births$enter < births$exit, ] # Remove zero-length intervals
+infants <- age.window(births, c(0, 365)) # Cut at age 365 days
+infants$birthdate <- toTime(infants$foddat)
+## Remove 'intermediates':
+infants <- infants[order(infants$id, -infants$exit), ]
+infants <- infants[!duplicated(infants$id), ]
+infants$enter <- 0 # All born in parish!
+infants$sluttyp <- infants$startdat <- infants$slutdat <- NULL # Not needed any more.
+infants$exit <- infants$exit / 365 # Measure age in years.
+infants <- cal.window(infants, c(1901, 1951)) # Select the years 1901-1950.
+infants <- infants[order(infants$birthdate), ] # Sort by birthdate
+## Define coastal areas 'ume' and 'ske':
+infants$region <- factor(infants$nofrs)
+levels(infants$region) <- c(rep("ume", 2), rep("ske", 4), 
+                            rep("inland", 3))
+infants$nofrs <- NULL # Not needed any more
+## Remove region 'inland':
+infants <- infants[infants$region != "inland", ]
+infants$region <- factor(infants$region) # Removes unused level 'inland'
+source("../R/tbl.R")
+x <- head(infants, 5) # First 5 lines of 'infants', store in 'x'
+tbl(x, caption = "First lines of the data frame 'infants', Umeå and Skellefteå.",
+    fs = 11) # fs = 'font size'
+```
+
+
+```{r lastlines}
+y <- tail(infants, 5) # Last 5 lines of 'infants'.
+tbl(y, caption = "Last lines of the data frame 'infants'.", fs = 11)
+```
+
+# Table by year and sex
+
+See Table \@ref(tab:tabs) for the result of the following code.
+
+```{r tabs}
+## Period statistics (period = year)
+girls <- with(infants[infants$sex == "female", ], 
+              perstat(cbind(enter, exit, event, birthdate), 
+                      period = 1901:1951, age = c(0, 1)))
+boys <- with(infants[infants$sex == "male", ], 
+              perstat(cbind(enter, exit, event, birthdate), 
+                      period = 1901:1951, age = c(0, 1)))
+## Rearrange:
+boy <- data.frame(year = 1901:1950, sex = rep("boys", 50),
+                  deaths = as.numeric(boys$events), 
+                  exposure = as.numeric(boys$exposure)) 
+                  
+girl <- data.frame(year = 1901:1950, sex = rep("girls", 50),
+                   deaths = as.numeric(girls$events), 
+                   exposure = as.numeric(girls$exposure))
+## Put together
+infant <- rbind(boy, girl)
+infant <- infant[order(infant$year, infant$sex), ]
+infant$sex <- as.factor(infant$sex)
+infant$year <- as.factor(infant$year)
+z <- head(infant, 5)
+tbl(z, caption = "Number of deaths and total exposure time (years) by sex and year. Early years.")
+```
+
+```{r lateyrs}
+w <- tail(infant, 5)
+tbl(w, caption = "Number of deaths and total exposure time (years) by sex and year. Late years.")
+```
+
+
+# Simple analysis
+
+Is the female survival advantage constant over 50 years 1901--1950? A simple *Poisson regression*
+gives the answer:
+
+```{r poisreg}
+infant$age <- "0-1"
+fit <- tpchreg(oe(deaths, exposure) ~ sex * year, time = age, data = infant)
+drop1(fit, test = "Chisq") # Likelihood Ratio Test
+```
+
+Obviously, there is no evidence of that the female advantage should vary with time.
+The overall femal advantage is found by the multiplicative model, see Table \@ref(tab:mult).
+
+```{r mult, results = 'asis'}
+fit <- tpchreg(oe(deaths, exposure) ~ sex + as.numeric(year),
+               time = age, data = infant)
+x <- summary(fit)
+hr <-  fit$coefficients[1]
+eupper <- round(exp(hr + 1.96 * sqrt(fit$var[1,1])), 3)
+elower <- round(exp(hr - 1.96 * sqrt(fit$var[1,1])), 3)
+ehr <- round(exp(hr), 3)
+ltx(fit, caption = "Infant mortality by year and sex.", label = "tab:mult")
+```
+
+So, the female infant mortality is estimated to `r 100 * ehr` per cent of the male, 
+with 95% confidence interval (`r format(100 * elower, nsmall = 1)`, `r 100 * eupper`) per cent.
+
+# Graph by year
+
+```{r byyear, fig.cap = "Female mortality in relation to male (blue squares) by year with 95 per cent pointwise confidence intervals."}
+par(las = 1)
+hr <- numeric(50)
+up <- numeric(50)
+low <- numeric(50)
+i <- 0
+for (year in 1901:1950){
+    i <- i + 1
+    me <- infant[infant$year == year, ]
+    ff <- tpchreg(oe(deaths, exposure) ~ sex, time = age,
+                  data = me)
+    beta <- ff$coefficients[1]
+    sd <- sqrt(ff$var[1, 1])
+    hr[i] <- exp(beta)
+    up[i] <- exp(beta + 1.96 * sd)
+    low[i] <- exp(beta - 1.96 * sd)
+}
+plot(1901:1950, hr, type = "p", ylim = c(0.3, 2.3), 
+     xlab = "Year", ylab = "Hazard ratio (per cent)", 
+     col = "blue", axes = FALSE, cex = 5, pch = ".")
+axis(1, at = c(1901, 1913, 1925, 1938, 1950))
+axis(2, at = c(0.5, ehr, 1, 1.5, 2), 
+     labels = c(0.5, ehr, 1, 1.5, 2) * 100)
+box()
+for (i in 1:50){
+    lines(c(1900 + i, 1900 + i), c(low[i], up[i]), 
+          lty = 3, col = "darkgreen")
+    points(c(1900 + i, 1900 + i), c(low[i], up[i]), lty = 3, 
+           col = "darkgreen", pch = 5, cex = 0.3)
+}
+abline(h = 1)
+abline(h = ehr, lty = 2, col = "blue")
+abline(h = c(eupper, elower), lty = 3, col = "blue")
+```
+
+The numbers of deaths decrease rapidly with time, see Figure \@ref(fig:derap),
+which explains the increasing lenghts of the confidence intervals with time.
+
+```{r derap, fig.cap = "Infant mortality by year, 1901-1950."}
+deaths <- with(infant, tapply(deaths, year, sum))
+exposures <- with(infant, tapply(exposure, year, sum))
+intensity <- deaths / exposures
+aver <- sum(deaths) / sum(exposures)
+plot(1901:1950, intensity, type = "b", axes = FALSE, 
+     ylim = c(0, 0.13),  xlab = "Year", 
+     ylab = "Mortality, per cent", col = "blue")
+axis(1, at = c(1901, 1913, 1925, 1938, 1950))
+axis(2, at = seq(0.00, 0.12, by = 0.02), 
+     labels = seq(0, 12, by = 2), las = 1)
+box()
+abline(h = 0)
+abline(h = aver, col = "blue", lty = 2)
+text(1942, 0.08, "average", col = "blue")
+```
+
+# Conclusion
+
+Nothing much happens, the variation over the years we can see in the relative 
+difference in mortality between boys and girls is obviously purely random, no
+trend is visible. That is, the female advantage is strong and persistent. 
+
+One obvious observation, on the other hand, is that infant mortality
+decreases markedly over the first half of the 20th century.
