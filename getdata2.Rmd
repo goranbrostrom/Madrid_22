@@ -19,7 +19,9 @@ g <- function(x) (log(1 + 365 * x))^3
 # Introduction
 
 The only (so far) difference compared to the article "getdata.Rmd" is that time 
-here is measured in *days* instead of in a fraction of a year.
+here is measured in *days* instead of in a fraction of a year. *However*, "at the end", time is transformed back to units in years. The main reason is that the function `make.communal`
+assumes time measured in years, it is probably the variable `birthdate` that is the culprit.
+I will look into that in due course.
 
 # Population data
 
@@ -97,16 +99,17 @@ births$subreg <- factor(births$subreg) # Remove level "sten"
 
 ```{r neo, fig.cap = "Neonatal mortality by year, all regions."}
 neo <- births
+par(las = 1)
 ##
 ##neo$birthdate <- toTime(neo$foddat)
 neo <- age.window(neo, c(0, 28 / 365))
 ##neo$exit <- 365 * neo$exit
 surv <- as.matrix(neo[, c("enter", "exit", "event", "birthdate")])
 pall <- perstat(surv, period = 1900:1951)$intensity
-plot(1900:1950, pall, type = "b", ylim = c(0, 0.5), col = "blue", xlab = "Year",
+plot(1900:1950, pall, type = "b", ylim = c(0, 0.7), col = "blue", xlab = "Year",
      ylab = "Mortality")
 abline(h = 0)
-abline(h = 0.3, lty = 3)
+abline(h = c(0.1, 0.3, 0.5) , lty = 3)
 ```
 
 ## By region
