@@ -13,13 +13,14 @@ library(knitr)
 library(eha)
 library(skum)
 options(show.signif.stars = FALSE)
-g <- function(x) (log(1 + 365 * x))^3
+g <- function(x) (log(1 + x))^3 # x is time in days! #### Note ###
 ```
 
 # Introduction
 
 The only (so far) difference compared to the article "getdata.Rmd" is that time 
-here is measured in *days* instead of in a fraction of a year. *However*, "at the end", time is transformed back to units in years. The main reason is that the function `make.communal`
+here is measured in *days* instead of in a fraction of a year. *However*, "at the end", 
+time is transformed back to units in years. The main reason is that the function `make.communal`
 assumes time measured in years, it is probably the variable `birthdate` that is the culprit.
 I will look into that in due course.
 

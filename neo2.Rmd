@@ -38,7 +38,7 @@ knitr::opts_chunk$set(echo = FALSE,comment = NA)
 
 How to analyse table data with the same statistical models, for instance *Cox regression*,
 as you are used to with individual data, is shown here. It helps if you have the 
-**R** package *eha* [@eha; @ehar2] for easy conversion of individual data to tabular
+**R** package *eha* [@eha; @ehar2] for easy conversion of individual data to tabular data
 suitable for survival analysis.
 
 # Example: Neonatal mortality in Umeå/Skellefteå, 1895--1950
@@ -89,7 +89,7 @@ neo <- neo[neo$parity > 0, ] # Remove missing = -1
 neo$parity <- cut(neo$parity, c(0, 1.5, 3.5, 18.5), labels = c("1", "2-3", "4+"))
 neo$socStatus[is.na(neo$socStatus)] <- "low"
 x <- head(neo) ## OK
-tbl(x, caption = "Raw individual data.")
+tbl(x, caption = "Raw individual data, age in days. First few rows.")
 ```
 
 Next, *tabulate* data with the aid of the function *toTpch*, found in *eha*, see Table \@ref(tab:tabulate).
@@ -101,7 +101,7 @@ tneo <- toTpch(Surv(enter, exit, event) ~
 DIMT <- dim(tneo)
 X <- head(tneo)
 ##summary(tneo)
-tbl(X, caption = "Same data, tabular form.")
+tbl(X, caption = "Same data, tabular form, age in days. First few rows.")
 saveRDS(tneo, file = "t_data/tneo.rds")
 ```
 
@@ -110,7 +110,7 @@ Note how it works: For each combination of *socStatus*, *illeg*, *parity*,
 and the *exposure* time (in days) are calculated. The tabulated data frame is 
 0.17 per cent in size compared to the original file, and it is also *anonymous*.
 
-The age interval is cut into 28 pieces, "0-1", "1-2", etc., so the underlying statistical survival model is that of a *piecevise constant hazards*.
+The age interval $(0, 28]$ is cut into 28 pieces, (0-1], (1-2], etc., so the underlying statistical survival model is that of a *piecevise constant hazards*.
 
 So, it should not be any problem with public distribution of the tabulated data, but how about the analyses of the two data sets, will there be any differences in results? Not really, see what follows.
 
