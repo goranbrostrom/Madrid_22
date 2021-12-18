@@ -1,0 +1,63 @@
+---
+title: "getdata3.Rmd"
+author: "Göran Broström"
+date: "12/17/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(skum) # Also loads 'eha'
+```
+
+# Introduction
+
+Here we start with skum::pers instead of skum::obs, and age is always in days,
+with stillbirth age 0.099 and born alive but dead on birthday at age 0.25 days.
+
+Further, we skip the use of eha::make.communal in  favour of *match*. Reason: 
+eha::make.communal assumes age is measured in *years*.
+
+# Read skum::pers
+
+```{r readpers}
+per <- pers[pers$frsbobtyp == 2 | pers$df == 1, ]
+per <- per[per$foddat > 18950000, ]
+dn <- per$doddat < 1
+per$doddat[dn] <- per$foddat[dn] + 40000
+## Fix foddat:
+yr <- per$foddat %% 10000 == 0
+per$foddat[yr] <- per$foddat[yr] + 101
+mon <- per$foddat %% 100 == 0
+per$foddat[mon] <- per$foddat[mon] + 1
+## Fix doddat:
+yr <- per$doddat %% 10000 == 0
+per$doddat[yr] <- per$doddat[yr] + 101
+mon <- per$doddat %% 100 == 0
+per$doddat[mon] <- per$doddat[mon] + 1
+##
+per$birthdate <- as.Date(as.character(per$foddat), format = "%Y%m%d")
+per$deathdate <- as.Date(as.character(per$doddat), format = "%Y%m%d")
+nabir <- is.na(per$birthdate)
+per$foddat[nabir] <- per$foddat[nabir] - 2
+per$doddat[nabir] <- per$doddat[nabir] - 2
+##
+per$birthdate <- as.Date(as.character(per$foddat), format = "%Y%m%d")
+per$exit <- as.numeric(difftime(per$deathdate, per$birthdate))
+per$deathdate <- as.Date(as.character(per$doddat), format = "%Y%m%d")
+## Fix doddat:
+per$doddat[is.na(per$deathdate)] <- per$doddat[is.na(per$deathdate)] - 1
+per$deathdate <- as.Date(as.character(per$doddat), format = "%Y%m%d")
+##
+per$exit <- as.numeric(difftime(per$deathdate, per$birthdate, units = "days"))
+oj <- per$exit < 0
+per$doddat[oj] <- per$doddat[oj] + 10000
+per$deathdate <-  as.Date(as.character(per$doddat), format = "%Y%m%d")
+per$exit <- as.numeric(difftime(per$deathdate, per$birthdate, units = "days"))
+per$event <- per$exit <= 365
+per$exit[per$exit == 0] <- 0.25
+per$exit[per$exit > 365] <- 365
+```
+
