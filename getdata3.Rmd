@@ -14,10 +14,10 @@ library(skum) # Also loads 'eha'
 
 # Introduction
 
-Here we start with skum::pers instead of skum::obs, and age is always in days,
+Here we start with *skum::pers* instead of *skum::obs*, and age is always in days,
 with stillbirth age 0.099 and born alive but dead on birthday at age 0.25 days.
 
-Further, we skip the use of eha::make.communal in  favour of *match*. Reason: 
+Further, we eventually skip the use of eha::make.communal in  favor of *match*. Reason: 
 eha::make.communal assumes age is measured in *years*.
 
 # Read skum::pers
@@ -59,5 +59,12 @@ per$exit <- as.numeric(difftime(per$deathdate, per$birthdate, units = "days"))
 per$event <- per$exit <= 365
 per$exit[per$exit == 0] <- 0.25
 per$exit[per$exit > 365] <- 365
+```
+
+Now we need *nofrs* for newborn, found in the *observation* file(s), so
+
+```{r fromobs}
+bobs <- obs[obs$starttyp == 2 & obs$id %in% per$id, ]
+
 ```
 
