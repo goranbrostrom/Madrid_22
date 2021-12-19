@@ -65,6 +65,14 @@ Now we need *nofrs* for newborn, found in the *observation* file(s), so
 
 ```{r fromobs}
 bobs <- obs[obs$starttyp == 2 & obs$id %in% per$id, ]
-
+indx <- match(per$id, bobs$id)
+per$nofrs <- bobs$nofrs[indx]
+per <- per[!is.na(per$nofrs), ]
+per$subreg <- factor(per$nofrs)
+levels(per$subreg) <- c(rep("ume", 2), 
+                        rep("bjur", 4), 
+                        rep("sten", 3))
+per <- per[(per$subreg != "sten") & per$df == 0, ]
+per$subreg <- factor(per$subreg)
 ```
 
