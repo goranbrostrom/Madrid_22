@@ -52,7 +52,7 @@ births <- births[order(births$id, births$enter), ]
 ##births$mevent <- tapply(births$event, births$id, max)[indx]
 ##births <- births[!duplicated(births$id), ]
 ### Deaths:
-did <- unique(births$id[births$event])
+did <- unique(births$id[births$event == 1]) # NOTE: 'age.window' changes event = logical to numeric!
 deaths <- births[births$id %in% did, ]
 indx <- tapply(deaths$id, deaths$id)
 deaths$menter <- tapply(deaths$enter, deaths$id, min)[indx]
@@ -206,7 +206,7 @@ infdat <- rbind(bume, bskel)
 infdat <- infdat[order(infdat$id, infdat$enter), c("region", "id", "sex", "enter", "exit", "event", 
                                                    "birthdate", "socStatus", "hisclass", "illeg",
                                                    "parity", tempvars)]
-saveRDS(infdat, file = "data/infdat2_year.rds")
+saveRDS(infdat, file = "data/infdat2_year2.rds")
 ```
 
 Done!

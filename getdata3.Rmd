@@ -74,5 +74,6 @@ levels(per$subreg) <- c(rep("ume", 2),
                         rep("sten", 3))
 per <- per[(per$subreg != "sten") & per$df == 0, ]
 per$subreg <- factor(per$subreg)
+saveRDS(per, file = "data/infdat3.rds")
 ```
 
