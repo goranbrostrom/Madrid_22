@@ -2,15 +2,30 @@ readobs <- function(){
     ## Equal to Code Chunk 'readobs' in getdata2.Rmd
     ## Bug tracking!
     library(skum)
-    ###
+### Separate check of consistency pers <--> obs:
+    bo <- obs[obs$starttyp == 2, c("id", "startdat", "foddat")]
+    bo <- bo[order(bo$id), ]
+    bp <- pers[pers$id %in% bo$id, c("id", "frsbobtyp", "foddat")]
+    ##bp <- pers[pers$frsbobtyp == 2, c("id", "foddat")]
+    bp$startdat <- as.Date(as.character(bp$foddat), format = "%Y%m%d")
+    ##bp$slutdat <- as.Date(as.character(bp$doddat), format = "%Y%m%d")
+    bp <- bp[order(bp$id), ]
+    ## Remove NA i startdat i bp
+    
+    return(list(bo = bo, bp = bp))
+### End separate
+    
     bb <- obs$id[obs$starttyp == 2]
     births <- obs[obs$id %in% bb, 
-                  c("id", "sex", "foddat", "startdat", "slutdat", "nofrs", "sluttyp", "socStatus", "hisclass", 
+                  c("id", "sex", "foddat", "startdat", "slutdat",
+                    "nofrs", "sluttyp", "socStatus", "hisclass", 
                     "ort", "ortnmn")]
     births$event <- (births$sluttyp == 2)
     ## New start in days...:
-    births$enter <- as.numeric(with(births, difftime(startdat, foddat, unit = "days")))
-    births$exit <- as.numeric(with(births, difftime(slutdat, foddat, unit = "days")))
+    births$enter <- as.numeric(with(births,
+                                    difftime(startdat, foddat, unit = "days")))
+    births$exit <- as.numeric(with(births,
+                                   difftime(slutdat, foddat, unit = "days")))
     ##
     expand <- (births$startdat == births$slutdat) & births$event
     births$exit[expand] <- births$enter[expand] + 0.25 # 6 hours!
