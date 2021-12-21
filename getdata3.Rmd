@@ -1,7 +1,7 @@
 ---
 title: "getdata3.Rmd"
 author: "Göran Broström"
-date: "12/17/2021"
+date: "`r Sys.Date()`"
 output:
   pdf_document: default
   html_document: default
@@ -14,29 +14,36 @@ library(skum) # Also loads 'eha'
 
 # Introduction
 
-Here we start with *skum::pers* instead of *skum::obs*, and age is always in days,
-with stillbirth age 0.099 and born alive but dead on birthday at age 0.25 days.
+Now (December 22, 2021) I have come to the conclusion that data from the data frame 
+*persons* is the best and easiest start.
+
+So we start with *skum::persons* instead of *skum::obs*, and age is to begin with in days,
+with stillbirths age *removed* and born alive but dead on birthday at age 0.25 days.
+
+For user of *eha::make.communal*, we need to temporarily change time unit to years.
 
 Further, we eventually skip the use of eha::make.communal in  favor of *match*. Reason: 
-eha::make.communal assumes age is measured in *years*.
+eha::make.communal assumes age is measured in *years*. But this is no promise yet.
 
 # Read skum::pers
 
 ```{r readpers}
-per <- pers[pers$frsbobtyp == 2 | pers$df == 1, ]
-per <- per[per$foddat > 18950000, ]
+per <- pers[(pers$frsbobtyp == 2) & (pers$df == 0), ]
+per$frsbobtyp <- per$df <- per$f2id <- per$m2id <- NULL
+per$dodors <- per$frsbobdatmin <- per$frsbobdatmax <- per$utdatmax <- per$utdatmin <- NULL
+per <- per[(per$foddat > 18950000), ]
 dn <- per$doddat < 1
 per$doddat[dn] <- per$foddat[dn] + 40000
 ## Fix foddat:
 yr <- per$foddat %% 10000 == 0
-per$foddat[yr] <- per$foddat[yr] + 101
+per$foddat[yr] <- per$foddat[yr] + 101 # As early as possible
 mon <- per$foddat %% 100 == 0
-per$foddat[mon] <- per$foddat[mon] + 1
+per$foddat[mon] <- per$foddat[mon] + 1 # Ditto
 ## Fix doddat:
 yr <- per$doddat %% 10000 == 0
-per$doddat[yr] <- per$doddat[yr] + 101
+per$doddat[yr] <- per$doddat[yr] + 1231 # As late as possible
 mon <- per$doddat %% 100 == 0
-per$doddat[mon] <- per$doddat[mon] + 1
+per$doddat[mon] <- per$doddat[mon] + 28 # Ditto (guard for February ...)
 ##
 per$birthdate <- as.Date(as.character(per$foddat), format = "%Y%m%d")
 per$deathdate <- as.Date(as.character(per$doddat), format = "%Y%m%d")
@@ -72,8 +79,9 @@ per$subreg <- factor(per$nofrs)
 levels(per$subreg) <- c(rep("ume", 2), 
                         rep("bjur", 4), 
                         rep("sten", 3))
-per <- per[(per$subreg != "sten") & per$df == 0, ]
+per <- per[(per$subreg != "sten"), ]
 per$subreg <- factor(per$subreg)
+per$enter <- 0
 saveRDS(per, file = "data/infdat3.rds")
 ```
 
