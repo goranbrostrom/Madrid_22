@@ -32,10 +32,14 @@ readobs <- function(){
     deaths <- births[births$id %in% did, ]
     indx <- tapply(deaths$id, deaths$id)
     deaths$menter <- tapply(deaths$enter, deaths$id, min)[indx]
-    return(deaths)
+    ##return(deaths)
     ################################# 2nd check
+    ## NEW: Sort before unique:
+    deaths <- deaths[order(deaths$exit, decreasing = TRUE), ]
     deaths <- deaths[!duplicated(deaths$id), ]
     deaths$enter <- deaths$menter
+    return(deaths)
+    ################################## 3rd check
     deaths$menter <- NULL
     deaths$enter <- 0 ## satisfied....
     ### Survivors:
