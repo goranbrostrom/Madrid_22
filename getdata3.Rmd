@@ -82,6 +82,42 @@ levels(per$subreg) <- c(rep("ume", 2),
 per <- per[(per$subreg != "sten"), ]
 per$subreg <- factor(per$subreg)
 per$enter <- 0
-saveRDS(per, file = "data/infdat3.rds")
+per$sex <- factor(per$kon, labels = c("boy", "girl"))
+
+##saveRDS(per, file = "data/infdat3.rds")
+```
+
+# Put on temperature data
+
+```{r makecommunal}
+temp_start <- 1894
+temp_end <- 1951
+temp_ivl <- c(temp_start, temp_end)
+##
+umetemp <- readRDS("data/umetemp.rds")
+bjurtemp <- readRDS("data/bjurtemp.rds")
+##
+
+lagg <- 3 / 365  ## NOTE!!
+tempvars <-  c("heat", "aver", "cold", "emintemp", "emeantemp", "emaxtemp", 
+               "week", "year") 
+## Ume:
+bume <- per[per$subreg == "ume", ]
+bume <- make.communal(bume, umetemp[, tempvars], 
+                      start = temp_start, period = 1/52, lag = lagg)
+
+### Ske:
+bskel <- per[per$subreg == "bjur", ]
+bskel <- make.communal(bskel, bjurtemp[, tempvars], 
+                       start = temp_start, period = 1/52, lag = lagg)
+
+bume$region <- "ume"
+bskel$region <- "ske"
+infdat <- rbind(bume, bskel)
+infdat <- infdat[order(infdat$id, infdat$enter), c("region", "id", "sex", "enter", "exit", "event", 
+                                                   "birthdate", "socStatus", "hisclass", "illeg",
+                                                   "parity", tempvars)]
+saveRDS(infdat, file = "data/infdat2_year2.rds")
+
 ```
 

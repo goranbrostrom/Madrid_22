@@ -34,8 +34,8 @@ abstract: "The effect of extreme temperatures on infant mortality in the Umeå r
 knitr::opts_chunk$set(echo = FALSE, fig.path='figs/',fig.height=4,comment=NA)
 library(knitr)
 library(eha)
-g <- function(x) (log(1 + 365 * x))^3
-ginv <- function(y) (1 / 365) * (exp(y^(1/3)) - 1)
+g <- function(x) (log(1 + x))^3 # x in days.
+ginv <- function(y) exp(y^(1/3)) - 1
 ```
 
 # Introduction
@@ -68,29 +68,30 @@ analysis programs.
 Central in the *Bourgeouis-Pichat (B-P)* model is the *log-cube* time transform $g$:
 
 \begin{equation*}\label{eq:g}
-g(t) = \log^3(1 + 365 t), \quad 0 \le t \le 1,
+g(t) = \log^3(1 + t), \quad 0 \le t \le 365,
 \end{equation*}
 
-where $t$ is age measured in *years*. 
+where $t$ is age measured in *days*. 
 Its graph is shown in Figure \@ref(fig:figgraph).
 
 ```{r figgraph, fig.cap = "The log-cube transform g."}
 ##g <- function(x) (log(1 + x))^3  # Note: days!
-x <- seq(0, 1, length = 1000)
+x <- seq(0, 365, length = 1000)
 y <- g(x)
 plot(x, y, type = "l", xlab = "age (days)", ylab = "g(age)", axes = FALSE, col = "blue")
-xat <- c(0, 28 / 365, 1 / 2, 1)
+xat <- c(0, 28, 365)
 yat <- g(xat)
-axis(1, at = xat, labels = round(365 * xat, 3))
-axis(2, at = yat, labels = round(yat, 1), las = 2)
+axis(1, at = xat)
+axis(2, at = yat, labels = round(yat, 1), las = 1)
 box()
 lines(c(30, 30), c(0, g(30)), lty = 2, col = "darkgreen")
 lines(c(0, 30), c(g(30), g(30)), lty = 2, col = "darkgreen")
 abline(h = 0, v = 0)
+abline(a = 0, b = 1, col = "red")
 ```
 
 The B-P model specifies that, on the transformed age scale, the *exogeneous*
-mortality distribution, conditional on death before age one,  is *uniform*, that is, the 
+mortality distribution, conditional on death before age 365 days,  is *uniform*, that is, the 
 survivor function of $T$ is *linear*.
 
 \begin{equation}
@@ -113,16 +114,29 @@ through the statistical *sufficency pinciple*.
 ## Infant Mortality
 
 ```{r readdata}
-infdat <- readRDS("data/infdat2_year.rds")
+infdat <- readRDS("data/infdat3.rds")
 ```
 
 From the Umeå-Skellefteå region, we follow all persons born in the 
-region 1895--1950 until death, reaching the age of 1, or leaving follow-up for whatever 
-reason, whichever comes first.
+region 1895--1950 until death, reaching the age of 1 year, or leaving follow-up for whatever 
+reason, whichever comes first. The first few lines (infants) are
+
+```{r infdat3}
+source("R/tbl.R")
+sinf <- infdat[, c("region", "kon", "birthdate", "deathdate", "exit", "event")]
+x <- head(infdat, 5)
+tbl(x, caption = "A few infants in the data set.")
+```
+
+
+## The Bourgeois-Pichat procedure
+
+## Add weather data
 
 Figure \@ref(fig:mortstat) shows the average monthly crude infant mortality, and a clear seasonal pattern is visible.
 
 ```{r mortstat, fig.cap = "Crude infant mortality by week of year, Umeå/Skellefteå 1895--1950."}
+
 tid <- toTpch(Surv(enter, exit, event) ~ week, data =  infdat, cuts = c(0, 1))
 y <- tid$event / tid$exposure
 plot(1:52, y, type = "b", col = "blue", axes = FALSE, ylim = c(min(y), max(y)),
