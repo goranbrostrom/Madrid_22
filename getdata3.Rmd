@@ -73,6 +73,8 @@ Now we need *nofrs* for newborn, found in the *observation* file(s), so
 ```{r fromobs}
 bobs <- obs[obs$starttyp == 2 & obs$id %in% per$id, ]
 indx <- match(per$id, bobs$id)
+per$socStatus <- bobs$socStatus[indx]
+per$hisclass <- bobs$hisclass[indx]
 per$nofrs <- bobs$nofrs[indx]
 per <- per[!is.na(per$nofrs), ]
 per$subreg <- factor(per$nofrs)
@@ -83,13 +85,20 @@ per <- per[(per$subreg != "sten"), ]
 per$subreg <- factor(per$subreg)
 per$enter <- 0
 per$sex <- factor(per$kon, labels = c("boy", "girl"))
-
-##saveRDS(per, file = "data/infdat3.rds")
+per$birthdate <- toTime(per$birthdate)
+per$illeg <- as.numeric(per$ab == 2)
+per$parity <- per$paritet_g
+saveRDS(per, file = "data/infdat3.rds")
 ```
 
 # Put on temperature data
 
+Here we must change time unit to *year*.
+
 ```{r makecommunal}
+per$enter <- per$enter / 365
+per$exit <- per$exit / 365
+## per$birthdate <- toTime(per$birthdate) #already done!
 temp_start <- 1894
 temp_end <- 1951
 temp_ivl <- c(temp_start, temp_end)
@@ -117,7 +126,7 @@ infdat <- rbind(bume, bskel)
 infdat <- infdat[order(infdat$id, infdat$enter), c("region", "id", "sex", "enter", "exit", "event", 
                                                    "birthdate", "socStatus", "hisclass", "illeg",
                                                    "parity", tempvars)]
-saveRDS(infdat, file = "data/infdat2_year2.rds")
+saveRDS(infdat, file = "data/infdat3_year3.rds")
 
 ```
 
