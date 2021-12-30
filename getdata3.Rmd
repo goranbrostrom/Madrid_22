@@ -88,6 +88,13 @@ per$sex <- factor(per$kon, labels = c("boy", "girl"))
 per$birthdate <- toTime(per$birthdate)
 per$illeg <- as.numeric(per$ab == 2)
 per$parity <- per$paritet_g
+per$paritet_g <- per$paritet_k <- per$doddat <- per$frsbosdat <- NULL
+per$fid <- per$fboort <- per$ab <- per$fyrkfd <- per$fyrkind <- NULL
+per$region <- per$kon <- per$fodhfrs <- per$frsbobdat <- per$frsbostyp <- NULL
+per$fbonmn <- per$fboind <- per$fyrkrel <- per$fyrketxt <- NULL
+per$foddat <- as.Date(as.character(per$foddat), format = "%Y%m%d")
+per <- per[, c("id", "sex", "birthdate", "mid", "foddat", "parity", "illeg", 
+               "subreg", "socStatus", "enter", "exit", "event")]
 saveRDS(per, file = "data/infdat3.rds")
 ```
 
@@ -123,8 +130,8 @@ bskel <- make.communal(bskel, bjurtemp[, tempvars],
 bume$region <- "ume"
 bskel$region <- "ske"
 infdat <- rbind(bume, bskel)
-infdat <- infdat[order(infdat$id, infdat$enter), c("region", "id", "sex", "enter", "exit", "event", 
-                                                   "birthdate", "socStatus", "hisclass", "illeg",
+infdat <- infdat[order(infdat$id, infdat$enter), c("subreg", "id", "sex", "enter", "exit", "event", 
+                                                   "birthdate", "socStatus", "illeg",
                                                    "parity", tempvars)]
 saveRDS(infdat, file = "data/infdat3_year3.rds")
 
