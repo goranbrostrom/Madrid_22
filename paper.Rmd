@@ -31,7 +31,7 @@ abstract: "The effect of extreme temperatures on infant mortality in the Umeå r
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, fig.path='figs/',fig.height=4,comment=NA)
+knitr::opts_chunk$set(echo = FALSE, fig.path='figs/',fig.height=5,comment=NA)
 library(knitr)
 library(eha)
 g <- function(x) (log(1 + x))^3 # x in days.
@@ -123,7 +123,7 @@ reason, whichever comes first. The first few lines (infants) are
 
 ```{r infdat3}
 source("R/tbl.R")
-sinf <- infdat[, c("region", "kon", "birthdate", "deathdate", "exit", "event")]
+sinf <- infdat[, c("subreg", "sex", "birthdate", "exit", "event")]
 x <- head(infdat, 5)
 tbl(x, caption = "A few infants in the data set.")
 ```
@@ -131,13 +131,50 @@ tbl(x, caption = "A few infants in the data set.")
 
 ## The Bourgeois-Pichat procedure
 
+The BP procedure consists of two steps, to begin with:
+
+1.   Apply the log-cube transformation to the age data, and
+
+2.   plot the cumulative sum of the number of deaths vs. age.
+
+We plot without the first step in the left hand panel and with it in the
+right hand panel, see Figure \@ref(fig:ggplot2).
+
+```{r ggplot2, fig.cap = "BB plots with and without time transform.", fig.height = 7}
+nbths <- NROW(infdat)
+oldpar <- par(mfrow = c(2, 1))
+sur <- with(infdat, Surv(enter, exit, event))
+rs <- risksets(sur)
+ss <- cumsum(rs$n.events)
+## Natural:
+xt <- rs$risktimes
+att <- c(0, 28, 183, 365)
+plot(xt, ss / nbths, ylim = c(0, max(ss / nbths)), type = "l",
+     axes = FALSE, col = "blue", lwd = 2, xlab = "Age (days)",
+     main = "Untransformed", ylab = "Cum. deaths")
+abline(h = 0)
+axis(2, las = 1)
+axis(1, at = att, labels = att)
+box()
+## g-transformed:
+plot(g(xt), ss / nbths, ylim = c(0, max(ss / nbths)), type = "l",
+     axes = FALSE, col = "blue", lwd = 2, xlab = "Age (days)",
+     main = "After g-transform", ylab = "Cum. deaths")
+abline(h = 0)
+axis(2, las = 1)
+axis(1, at = g(att), labels = att)
+box()
+##
+par(oldpar)
+```
+
 ## Add weather data
 
 Figure \@ref(fig:mortstat) shows the average monthly crude infant mortality, and a clear seasonal pattern is visible.
 
 ```{r mortstat, fig.cap = "Crude infant mortality by week of year, Umeå/Skellefteå 1895--1950."}
-
-tid <- toTpch(Surv(enter, exit, event) ~ week, data =  infdat, cuts = c(0, 1))
+infdat <- readRDS("data/infdat3_year3.rds")
+tid <- toTpch(Surv(enter, exit, event) ~ week, data = infdat, cuts = c(0, 1))
 y <- tid$event / tid$exposure
 plot(1:52, y, type = "b", col = "blue", axes = FALSE, ylim = c(min(y), max(y)),
      xlab = "Week", ylab = "IMR")
