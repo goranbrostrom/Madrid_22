@@ -137,8 +137,8 @@ The BP procedure consists of two steps, to begin with:
 
 2.   plot the cumulative sum of the number of deaths vs. age.
 
-We plot without the first step in the left hand panel and with it in the
-right hand panel, see Figure \@ref(fig:ggplot2).
+We plot without the first step in the top panel and with it in the
+bottom panel, see Figure \@ref(fig:ggplot2).
 
 ```{r ggplot2, fig.cap = "BB plots with and without time transform.", fig.height = 7}
 nbths <- NROW(infdat)
