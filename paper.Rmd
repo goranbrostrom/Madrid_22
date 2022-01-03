@@ -140,9 +140,9 @@ The BP procedure consists of two steps, to begin with:
 We plot without the first step in the top panel and with it in the
 bottom panel, see Figure \@ref(fig:ggplot2).
 
-```{r ggplot2, fig.cap = "BB plots with and without time transform.", fig.height = 7}
+```{r ggplot2, fig.cap = "BB plots with and without time transform.", fig.height = 5}
 nbths <- NROW(infdat)
-oldpar <- par(mfrow = c(2, 1))
+##oldpar <- par(mfrow = c(2, 1))
 sur <- with(infdat, Surv(enter, exit, event))
 rs <- risksets(sur)
 ss <- cumsum(rs$n.events)
@@ -151,21 +151,27 @@ xt <- rs$risktimes
 att <- c(0, 28, 183, 365)
 plot(xt, ss / nbths, ylim = c(0, max(ss / nbths)), type = "l",
      axes = FALSE, col = "blue", lwd = 2, xlab = "Age (days)",
-     main = "Untransformed", ylab = "Cum. deaths")
+     ylab = "Cum. deaths")
 abline(h = 0)
 axis(2, las = 1)
 axis(1, at = att, labels = att)
 box()
 ## g-transformed:
-plot(g(xt), ss / nbths, ylim = c(0, max(ss / nbths)), type = "l",
-     axes = FALSE, col = "blue", lwd = 2, xlab = "Age (days)",
+lines(g(xt) / g(365) * 365, ss / nbths, ylim = c(0, max(ss / nbths)), type = "l",
+     col = "red", lwd = 2, xlab = "Age (days)",
      main = "After g-transform", ylab = "Cum. deaths")
-abline(h = 0)
-axis(2, las = 1)
-axis(1, at = g(att), labels = att)
+##abline(h = 0)
+##axis(2, las = 1)
+axis(3, at = g(att) / g(365) * 365, labels = att, col = "red")
 box()
+abline(v = 0)
+abline(v = g(c(28, 183, 365)) / g(365) * 365, col = "red", lty = 3)
+abline(v = c(28, 183, 365), col = "blue", lty = 3)
 ##
-par(oldpar)
+legend("bottomright", legend = c("Natural", "g-transform"), col = c("blue", "red"), lty = 1)
+abline(h = (ss / nbths) [28], lty = 3 )
+abline(h = (ss / nbths) [180], lty = 3 )
+##par(oldpar)
 ```
 
 ## Add weather data
