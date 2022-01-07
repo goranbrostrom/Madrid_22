@@ -79,15 +79,21 @@ Its graph is shown in Figure \@ref(fig:figgraph).
 x <- seq(0, 365, length = 1000)
 y <- g(x)
 plot(x, y, type = "l", xlab = "age (days)", ylab = "g(age)", axes = FALSE, col = "blue")
-xat <- c(0, 28, 365)
+xat <- c(0, 28, 183, 365)
 yat <- g(xat)
 axis(1, at = xat)
 axis(2, at = yat, labels = round(yat, 1), las = 1)
 box()
-lines(c(30, 30), c(0, g(30)), lty = 2, col = "darkgreen")
-lines(c(0, 30), c(g(30), g(30)), lty = 2, col = "darkgreen")
+lines(c(28, 28), c(0, g(28)), lty = 2, col = "darkgreen")
+lines(c(0, 28), c(g(28), g(28)), lty = 2, col = "darkgreen")
+##
+lines(c(183, 183), c(0, g(183)), lty = 2, col = "darkgreen")
+lines(c(0, 183), c(g(183), g(183)), lty = 2, col = "darkgreen")
+##
+lines(c(365, 365), c(0, g(365)), lty = 2, col = "darkgreen")
+lines(c(0, 365), c(g(365), g(365)), lty = 2, col = "darkgreen")
 abline(h = 0, v = 0)
-abline(a = 0, b = 1, col = "red")
+##abline(a = 0, b = 1, col = "red")
 ```
 
 The B-P model specifies that, on the transformed age scale, the *exogeneous*
@@ -119,7 +125,8 @@ infdat <- readRDS("data/infdat3.rds")
 
 From the Umeå-Skellefteå region, we follow all persons born in the 
 region 1895--1950 until death, reaching the age of 1 year, or leaving follow-up for whatever 
-reason, whichever comes first. The first few lines (infants) are
+reason, whichever comes first. The first few lines (infants) are shown in Table 
+\@ref(tab:infdat3).
 
 ```{r infdat3}
 source("R/tbl.R")
@@ -137,10 +144,10 @@ The BP procedure consists of two steps, to begin with:
 
 2.   plot the cumulative sum of the number of deaths vs. age.
 
-We plot without the first step in the top panel and with it in the
-bottom panel, see Figure \@ref(fig:ggplot2).
+The result is shown in Figure \@ref(fig:ggplot2), with the original, untransformed
+data together with the transform, stretched to 365.
 
-```{r ggplot2, fig.cap = "BB plots with and without time transform.", fig.height = 5}
+```{r ggplot2, fig.cap = "BB plots with and without time transform, Umeå-Skellefteå 1895-1950.", fig.height = 5}
 nbths <- NROW(infdat)
 ##oldpar <- par(mfrow = c(2, 1))
 sur <- with(infdat, Surv(enter, exit, event))
@@ -173,6 +180,64 @@ abline(h = (ss / nbths) [28], lty = 3 )
 abline(h = (ss / nbths) [180], lty = 3 )
 ##par(oldpar)
 ```
+
+The plot, disregarding the transform, is just a graph of the empirical *cumulative distribution function (CDF)*,
+that is, one minus the *Kaplan-Meier estimate* of the *survivor function*.
+
+## Post-neonatal mortality
+
+We begin by studying mortality after age 28 days on the g-scale, BP predicts that it is approximately *uniform*. 
+The uniform distribution, however, is not very useful in a survival analysis context, so we will
+investigate a close alternative, the *exponential * distribution. Modifying the BP plot by using successive 
+divison by *risk set size* instead of sample size should result in an approximately linear graph if the 
+exponential assumption is valid.
+
+```{r pneo, fig.cap = "Relation between cumulative hazards and CDF for transformed post-neonatal mortality data."}
+ginfdat <- age.window(infdat, c(28, 365))
+ginfdat$enter <- g(ginfdat$enter)
+ginfdat$exit <- g(ginfdat$exit)
+grs <- risksets(with(ginfdat, Surv(enter, exit, event)), members = FALSE)
+fit <- coxreg(Surv(enter, exit, event) ~ 1, data = ginfdat)
+ser <- plot(fit, fn = "sur", fig = FALSE)
+##plot(fit, col = "blue", axes = FALSE)
+cum <- fit$hazards[[1]]
+x <- cum[, 1]
+ch <- cumsum(cum[, 2])
+plot(x, ch, type = "s", axes = FALSE, col = "blue", xlab = "Age (days)", ylab = "")
+axis(1, at = c(g(28), g(183), g(365)), labels = c(28, 183, 365))
+axis(2, las = 1)
+abline(h = 0)
+box()
+x <- ser[[1]][[1]][, 1]
+y <- ser[[1]][[1]][, 2]
+lines(x, 1 - y, col = "red", lty = 2)
+legend("topleft", legend = c("Cumulative hazards", "CDF (Bourgeouis-Pichat)"), col = c("blue", "red"),
+       lty = c(1, 2))
+```
+
+As is evident from Figure \@ref(fig:pneo), the difference between the the two curves is
+negligible, and both are well approximated by a straight line, so we will from now on work with the 
+assumption that the transformed post-neonatal data are *exponentially distributed*.
+There is also a mathematical argument motivating the similarity: The cdf for an exponentially 
+distributed random variable $T$ is
+
+\begin{equation*}
+F_T(t) = 1 - \exp(-\lambda t), \quad t, \lambda > 0, 
+\end{equation*}
+
+and the first order approximation of this cdf is
+
+\begin{equation*}
+F_T(t) \approx \lambda t, \quad t, \lambda > 0,
+\end{equation*}
+
+which is the *cumulative hazards* function of $T$,
+and the approximation is good for small values of $\lambda t$.
+
+
+
+
+
 
 ## Add weather data
 
