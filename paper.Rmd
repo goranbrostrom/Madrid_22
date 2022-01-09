@@ -7,8 +7,8 @@ output:
     citation_package: natbib
     keep_tex: yes
     number_sections: yes
-    toc: no
-    toc_depth: 2
+    toc: yes
+    toc_depth: 3
   bookdown::word_document2:
     toc: no
     toc_depth: 2
@@ -52,7 +52,7 @@ is studied and interacted with sex, social class, and legitimacy. Studies are pe
 separatelyfor neonatal  and post-neonatal mortality, and for winter and summer seasons, 
 and in a joint analysis, the classification into endogenous and exogenous factors will be discussed.
 
-# The Bourgeouis-Pichat model and the approximation
+# The Bourgeouis-Pichat model
 
 A variation of the Bourgeouis-Pichat (B-P) biometric analysis [@bp51a;
 @bp51b] of infant mortality is suggested. B-P suggests that mortality
@@ -113,9 +113,8 @@ uniform distribution is not easy to work with in a survival analysis context.
 However, we show that the BP transformation is well approximated by a model where the 
 *cumulative hazards function* is linear instead, that is, an *exponential distribution*,
 easy to use in standard survival regression analysis, often allowing for massive data reduction
-through the statistical *sufficency pinciple*. 
+through the statistical *sufficency principle*. 
 
-# Data 
 
 ## Infant Mortality
 
@@ -279,7 +278,18 @@ abline(h = posthaz, col = "red", lty = 2)
 
 A smooth transition to the post-neonatal mortality.
 
-## Add weather data
+### Putting it together
+
+
+# Data
+
+## Infant data
+
+In the previous chapter we introduced data on infant mortality from the Umeå-Skellefteå
+region 1895--1950, and here we introduce covariates of interest in the forthcoming  analyses, 
+see Table 
+
+## Weather data
 
 Figure \@ref(fig:mortstat) shows the average monthly crude infant mortality, and a clear seasonal pattern is visible.
 
@@ -295,7 +305,7 @@ abline(h = c(0.05, 0.06, 0.07, 0.08, 0.09), lty = 3)
 box()
 ```
 
-In accordance with the Bourgeouis-Pichat ideas, we group the analyses into two parts, 
+In accordance with the ideas of Bourgeouis-Pichat, we group the analyses into two parts, 
 *neonatal* (first 28 days) och *postneonatal* mortality (days 29--365).
 
 ### Neonatal mortality
