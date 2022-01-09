@@ -31,7 +31,7 @@ abstract: "The effect of extreme temperatures on infant mortality in the Umeå r
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, fig.path='figs/',fig.height=5,comment=NA)
+knitr::opts_chunk$set(echo = FALSE, fig.path='figs/',fig.height=4,comment=NA)
 library(knitr)
 library(eha)
 g <- function(x) (log(1 + x))^3 # x in days.
@@ -136,7 +136,7 @@ tbl(x, caption = "A few infants in the data set.")
 ```
 
 
-## The Bourgeois-Pichat procedure
+### The Bourgeois-Pichat procedure
 
 The BP procedure consists of two steps, to begin with:
 
@@ -184,7 +184,7 @@ abline(h = (ss / nbths) [180], lty = 3 )
 The plot, disregarding the transform, is just a graph of the empirical *cumulative distribution function (CDF)*,
 that is, one minus the *Kaplan-Meier estimate* of the *survivor function*.
 
-## Post-neonatal mortality
+### Post-neonatal mortality
 
 We begin by studying mortality after age 28 days on the g-scale, BP predicts that it is approximately *uniform*. 
 The uniform distribution, however, is not very useful in a survival analysis context, so we will
@@ -234,10 +234,50 @@ F_T(t) \approx \lambda t, \quad t, \lambda > 0,
 which is the *cumulative hazards* function of $T$,
 and the approximation is good for small values of $\lambda t$.
 
+So, the *hazard function* (which is the slope of the lines in Figure \@ref(fig:pneo))
+is simply estimated by the ratio of the number of deaths to the total time of exposure:
 
+```{r simpest, echo = TRUE}
+posthaz <- with(ginfdat, sum(event) / sum(exit - enter))
+```
 
+which evaluates to `r format(posthaz, digits = 3, scientific = TRUE)`. A small number, but remember
+that the time unit is defined on the scale defined by the function $g$ (close to *day*).
 
+### Neonatal mortality
 
+Is the sum of two components, *external* and *internal* causes. According to the *B-P*
+theory, the external component is equal to the post-neonatal mortality, which contains 
+only an external component. 
+
+We create the neonatal data set by censor all lives at the age 28:
+
+```{r neon, echo = TRUE}
+neo <- age.window(infdat, c(0, 28))
+neo$enter <- g(neo$enter)
+neo$exit <- g(neo$exit)
+```
+
+and then fit a piecewise constant hazards model with cutpoints at (0, 1, 2, 4, 8, 12, 18, 24, 30, 35, 39), see 
+Figure \@ref(fig:pchneo).
+
+```{r pchneo, fig.cap = "Neonatal hazard function with external component (dashed).", fig.height = 4}
+fitneo <- pchreg(Surv(enter, exit, event) ~ 1, data = neo, cuts = c(0,  1, 2, 4, 8, 12, 18, 24, 30, 35, 39))
+plot(fitneo, fn = "haz", col = "blue", main = "", xlab = "g(days)")
+abline(h = 0, v = 0)
+abline(h = posthaz, col = "red", lty = 2)
+```
+
+Let us take a closer look at what happens at the end of the neonatal inerval:
+
+```{r pchneo2, fig.cap = "Neonatal hazard function with external component (dashed), right hand tail.", fig.height = 4}
+##fitneo <- pchreg(Surv(enter, exit, event) ~ 1, data = neo, cuts = c(0,  1, 2, 4, 8, 12, 18, 24, 30, 39))
+plot(fitneo, fn = "haz", col = "blue", main = "", xlab = "g(days)", xlim = c(15, 39))
+abline(h = 0, v = 0)
+abline(h = posthaz, col = "red", lty = 2)
+```
+
+A smooth transition to the post-neonatal mortality.
 
 ## Add weather data
 
