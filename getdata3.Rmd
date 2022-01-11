@@ -74,6 +74,7 @@ Now we need *nofrs* for newborn, found in the *observation* file(s), so
 bobs <- obs[obs$starttyp == 2 & obs$id %in% per$id, ]
 indx <- match(per$id, bobs$id)
 per$socStatus <- bobs$socStatus[indx]
+per$socBranch <- bobs$socBranch[indx]
 per$hisclass <- bobs$hisclass[indx]
 per$nofrs <- bobs$nofrs[indx]
 per <- per[!is.na(per$nofrs), ]
@@ -94,7 +95,7 @@ per$region <- per$kon <- per$fodhfrs <- per$frsbobdat <- per$frsbostyp <- NULL
 per$fbonmn <- per$fboind <- per$fyrkrel <- per$fyrketxt <- NULL
 per$foddat <- as.Date(as.character(per$foddat), format = "%Y%m%d")
 per <- per[, c("id", "sex", "birthdate", "mid", "foddat", "parity", "illeg", 
-               "subreg", "socStatus", "enter", "exit", "event")]
+               "subreg", "socBranch", "socStatus", "enter", "exit", "event")]
 saveRDS(per, file = "data/infdat3.rds")
 ```
 
@@ -131,7 +132,7 @@ bume$region <- "ume"
 bskel$region <- "ske"
 infdat <- rbind(bume, bskel)
 infdat <- infdat[order(infdat$id, infdat$enter), c("subreg", "id", "sex", "enter", "exit", "event", 
-                                                   "birthdate", "socStatus", "illeg",
+                                                   "birthdate", "socBranch", "socStatus", "illeg",
                                                    "parity", tempvars)]
 saveRDS(infdat, file = "data/infdat3_year3.rds")
 
