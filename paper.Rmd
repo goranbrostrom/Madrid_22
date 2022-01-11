@@ -32,7 +32,7 @@ abstract: "The effect of extreme temperatures on infant mortality in the Umeå r
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, fig.path='figs/',fig.height=4,comment=NA)
+knitr::opts_chunk$set(echo = FALSE, fig.path='figs/',fig.height=3,comment=NA)
 library(knitr)
 library(eha)
 g <- function(x) (log(1 + x))^3 # x in days.
@@ -51,23 +51,19 @@ generated great interest over the last years, see @tbgb10.
 
 The effect of seasonal variation and the occurrence of extreme monthly temperatures
 is studied and interacted with sex, social class, and legitimacy. Studies are performed 
-separatelyfor neonatal  and post-neonatal mortality, and for winter and summer seasons, 
+separately for neonatal  and postneonatal mortality, and for winter and summer seasons, 
 and in a joint analysis, the classification into endogenous and exogenous factors will be discussed.
+
+One important reason for studying neonatal and postneonatal mortality separately is the 
+findings by Bourgeouis-Pichat [@bp51a;  @bp51b] about endogeneous and exogeneous mortality and the log-cube transform,
+so we start by recollecting his results and formulate them in a modern statistical setting.
 
 # The Bourgeouis-Pichat model
 
-A variation of the Bourgeouis-Pichat (B-P) biometric analysis [@bp51a;
-@bp51b] of infant mortality is suggested. B-P suggests that mortality
-during the last eleven months of infancy follows a *uniform* distribution
+Bourgeouis-Picat (*B-P*) suggests that mortality
+during the last eleven months (28 days) of infancy follows a *uniform* distribution
 given a specific transformation of time (age), the 
-*log-cube ("BP") transformation*. We show the BP transformation is closely approximated by
-an *exponential distribution*, 
-that is, the *cumulative hazards function* is linear.
- The advantage is that estimation of exogeneous and
-endogeneous infant mortality is easily performed with standard survival
-analysis programs.
-
-Central in the *Bourgeouis-Pichat (B-P)* model is the *log-cube* time transform $g$:
+*log-cube transformation* $g$. 
 
 \begin{equation*}\label{eq:g}
 g(t) = \log^3(1 + t), \quad 0 \le t \le 365,
@@ -76,7 +72,7 @@ g(t) = \log^3(1 + t), \quad 0 \le t \le 365,
 where $t$ is age measured in *days*. 
 Its graph is shown in Figure \@ref(fig:figgraph).
 
-```{r figgraph, fig.cap = "The log-cube transform g."}
+```{r figgraph, fig.cap = "The log-cube transform g.", fig.height = 4}
 ##g <- function(x) (log(1 + x))^3  # Note: days!
 x <- seq(0, 365, length = 1000)
 y <- g(x)
@@ -99,27 +95,20 @@ abline(h = 0, v = 0)
 ##abline(a = 0, b = 1, col = "red")
 ```
 
-The B-P model specifies that, on the transformed age scale, the *exogeneous*
+The *B-P* model specifies that, on the transformed age scale, the *exogeneous*
 mortality distribution, conditional on death before age 365 days,  is *uniform*, that is, the 
-survivor function of $T$ is *linear*.
+survivor function of $T$ is *linear*,
 
 \begin{equation}
-S(t) = 1 - \alpha t, \, 0 < t < g(1).
+S(t) = 1 - \alpha t, \, 0 \le t \le g(365).
 \end{equation}
 
 Furthermore, it is assumed that the *endogeneous* component is non-zero only during the first
 month of life.
 
-It seems to fit infant mortality data very well, but one drawback with it is that the 
-uniform distribution is not easy to work with in a survival analysis context.
+Next we apply the model to our infant mortality data from the Umeå-Skellefteå region.
 
-However, we show that the BP transformation is well approximated by a model where the 
-*cumulative hazards function* is linear instead, that is, an *exponential distribution*,
-easy to use in standard survival regression analysis, often allowing for massive data reduction
-through the statistical *sufficency principle*. 
-
-
-## Infant Mortality
+## Infant mortality, a first look
 
 ```{r readdata}
 infdat <- readRDS("data/infdat3.rds")
@@ -128,12 +117,13 @@ infdat <- readRDS("data/infdat3.rds")
 From the Umeå-Skellefteå region, we follow all persons born in the 
 region 1895--1950 until death, reaching the age of 1 year, or leaving follow-up for whatever 
 reason, whichever comes first. The first few lines (infants) are shown in Table 
-\@ref(tab:infdat3).
+\@ref(tab:infdat3). Note that covariates are left out for the time being.
 
-If `event == FALSE`, then the infant died at age (in days) given by `exit`, otherwise
-the infant survived (at least) 365 days and follow-up is lost at `exit == 365`. For the
-time being, no covariates are involved. So, in Table \@ref(tab:infdat3), infants No. 1--4 survived, 
-while infant No. 5 died at age 162 days.
+If `event == TRUE`, then the infant died at age (in days) given by `exit`, otherwise
+the infant survived (at least) 365 days and follow-up is lost at `exit == 365`. 
+So, in Table \@ref(tab:infdat3), infants No. 1--4 survived, 
+while infant No. 5 died at age 162 days. We assume here that all infants are followed from birth,
+that is, `enter == 0` in all cases (no left truncation).
 
 ```{r infdat3}
 source("R/tbl.R")
@@ -149,14 +139,16 @@ tbl(z, caption = "A few infants in the data set.")
 
 ### The Bourgeois-Pichat procedure
 
-The BP procedure consists of two steps, to begin with:
+The BP procedure consists of three steps:
 
-1.   Apply the log-cube transformation to the age data, and
+1.   Order the data set ascending by `exit`,
 
-2.   plot the cumulative sum of the number of deaths vs. age.
+2.   apply the log-cube transformation to the age data, and
 
-The result is shown in Figure \@ref(fig:ggplot2), with the original, untransformed
-data together with the transform, stretched to 365.
+3.   plot the cumulative sum of the number of deaths vs. age.
+
+The result is shown in Figure \@ref(fig:ggplot2), together with the original
+data.  The transform data is stretced  stretched to 365 for easier comparison.
 
 ```{r ggplot2, fig.cap = "BB plots with and without time transform, Umeå-Skellefteå 1895-1950."}
 nbths <- NROW(infdat)
@@ -175,12 +167,11 @@ axis(2, las = 1)
 axis(1, at = att, labels = att)
 box()
 ## g-transformed:
-lines(g(xt) / g(365) * 365, ss / nbths, ylim = c(0, max(ss / nbths)), type = "l",
-     col = "red", lwd = 2, xlab = "Age (days)",
-     main = "After g-transform", ylab = "Cum. deaths")
+lines(g(xt) / g(365) * 365, ss / nbths, 
+     col = "red", lwd = 2, xlab = "Age (days)", lty = 2)
 ##abline(h = 0)
 ##axis(2, las = 1)
-axis(3, at = g(att) / g(365) * 365, labels = att, col = "red")
+axis(3, at = g(att) / g(365) * 365, labels = att, col = "red", lty = 2)
 box()
 abline(v = 0)
 abline(v = g(c(28, 183, 365)) / g(365) * 365, col = "red", lty = 3)
@@ -192,18 +183,19 @@ abline(h = (ss / nbths) [180], lty = 3 )
 ##par(oldpar)
 ```
 
-The plot, disregarding the transform, is just a graph of the empirical *cumulative distribution function (CDF)*,
-that is, one minus the *Kaplan-Meier estimate* of the *survivor function*.
+The curves are the empirical *cumulative distribution function (CDF)* expressed 
+on the two scales, that is, one minus the *Kaplan-Meier [@km58] estimates* of the 
+*survivor functions*.
 
-### Post-neonatal mortality
+### Postneonatal mortality
 
 We begin by studying mortality after age 28 days on the $g$-scale, *B-P* predicts that it is approximately *uniform*. 
 The uniform distribution, however, is not very useful in a survival analysis context, so we will
 investigate a close alternative, the *exponential * distribution. Modifying the *B-P* plot by using successive 
-divisions by *risk set size* instead of sample size should result in an approximately linear graph if the 
+divisions by current *risk set size* instead of original sample size should result in an approximately linear graph if the 
 exponential assumption is valid.
 
-```{r pneo, fig.cap = "Relation between cumulative hazards and CDF for transformed post-neonatal mortality data."}
+```{r pneo, fig.cap = "Relation between cumulative hazards and CDF for transformed postneonatal mortality data."}
 ginfdat <- age.window(infdat, c(28, 365))
 ginfdat$enter <- g(ginfdat$enter)
 ginfdat$exit <- g(ginfdat$exit)
@@ -228,7 +220,7 @@ legend("topleft", legend = c("Cumulative hazards", "CDF (Bourgeouis-Pichat)"), c
 
 As is evident from Figure \@ref(fig:pneo), the difference between the the two curves is
 negligible, and both are well approximated by a straight line, so we will from now on work with the 
-assumption that the transformed post-neonatal data are *exponentially distributed*.
+assumption that the transformed postneonatal data are *exponentially distributed*.
 There is also a mathematical argument motivating the similarity: The cdf for an exponentially 
 distributed random variable $T$ is
 
@@ -246,7 +238,8 @@ which is the *cumulative hazards* function of $T$,
 and the approximation is good for small values of $\lambda t$.
 
 So, the *hazard function* (which is the slope of the lines in Figure \@ref(fig:pneo))
-is simply estimated by the ratio of the number of deaths to the total time of exposure:
+is simply estimated by the ratio of the *number of deaths* to the *total time of exposure*
+(an *occurrence/exposure* rate):
 
 ```{r simpest, echo = TRUE}
 posthaz <- with(ginfdat, sum(event) / sum(exit - enter))
@@ -258,7 +251,7 @@ that the time unit is defined on the scale defined by the function $g$ (close to
 ### Neonatal mortality
 
 Is the sum of two components, *external* and *internal* causes. According to the *B-P*
-theory, the external component is equal to the post-neonatal mortality, which contains 
+theory, the external component is equal to the postneonatal mortality, which contains 
 only an external component. 
 
 We create the neonatal data set by censor all lives at the age 28:
@@ -269,10 +262,10 @@ neo$enter <- g(neo$enter)
 neo$exit <- g(neo$exit)
 ```
 
-and then fit a piecewise constant hazards model with cutpoints at $g(0, 1, 2, 4, 7, 11, 16, 22, 28)$, see 
+and then fit a piecewise constant hazards model with cutpoints at $g(0, 2, 4, 7, 11, 16, 22, 28)$, see 
 Figure \@ref(fig:pchneo).
 
-```{r pchneo, fig.cap = "Neonatal hazard function with external component (dashed).", fig.height = 4}
+```{r pchneo, fig.cap = "Neonatal hazard function with external component (dashed).", fig.height = 3}
 neocuts <- g(c(0, 2, 4, 7, 11, 16, 22, 28))
 fitneo <- pchreg(Surv(enter, exit, event) ~ 1, data = neo, cuts = neocuts)
 plot(fitneo, fn = "haz", col = "blue", main = "", xlab = "g(days)", axes = FALSE)
@@ -284,9 +277,10 @@ abline(h = posthaz, col = "red", lty = 2)
 ```
 
 Let us take a closer look at what happens at the end of the neonatal interval, see 
-Figure \@ref(fig:pchneo2).
+Figure \@ref(fig:pchneo2). It shows a smooth transition towards the postneonatal 
+(external) mortality.
 
-```{r pchneo2, fig.cap = "Neonatal hazard function with external component (dashed), right hand tail.", fig.height = 4}
+```{r pchneo2, fig.cap = "Neonatal hazard function with external component (dashed), right hand tail.", fig.height = 3}
 ##fitneo <- pchreg(Surv(enter, exit, event) ~ 1, data = neo, cuts = neocuts)
 par(las = 1)
 plot(fitneo, fn = "haz", col = "blue", main = "", xlab = "g(days)", xlim = c(5, 39))
@@ -294,7 +288,6 @@ abline(h = 0, v = 0)
 abline(h = posthaz, col = "red", lty = 2)
 ```
 
-A smooth transition to the post-neonatal mortality.
 
 ### Putting all together
 
@@ -324,15 +317,16 @@ h_T(t) = \frac{d}{dt} g(t) h_Y\bigl(g^{-1}(t)\bigr), \quad 0 \le t \le 365,
 \end{equation*}
 
 and with $h_Y$ shown in Figure \@ref(fig:together), we get $h_T$ in Figure 
-\@ref(fig:allnorm).
+\@ref(fig:allnorm) **(must be checked!)**.
 
 ```{r allnorm, fig.cap = "Hazard function, infant mortality, natural time scale."}
-y <- hazards(fitall, cum = FALSE)$x
-hy <- hazards(fitall, cum = FALSE)$y
+y <- hazards(fitall, cum = FALSE, n.points = 3000)$x
+hy <- hazards(fitall, cum = FALSE, n.points = 3000)$y
 te <- ginv(y)
 hte <- dg(te) * hy
 plot(te, hte, type = "s", col = "blue", xlab = "Days", ylab = "", axes = FALSE,
-     ylim = c(0, 0.002))
+     ylim = c(0, 0.002)) 
+     ##xlim = c(0, 28))
 axis(1, at = ginv(pcuts))
 axis(2, las = 1)
 box()
@@ -346,7 +340,7 @@ abline(h = 0, v = 0)
 
 
 
-## Weather data
+## Infant mortality, summary graphs
 
 Figure \@ref(fig:mortstat) shows the average monthly crude infant mortality, and a clear seasonal pattern is visible.
 
@@ -354,26 +348,14 @@ Figure \@ref(fig:mortstat) shows the average monthly crude infant mortality, and
 infdat <- readRDS("data/infdat3_year3.rds")
 tid <- toTpch(Surv(enter, exit, event) ~ week, data = infdat, cuts = c(0, 1))
 y <- tid$event / tid$exposure
-plot(1:52, y, type = "b", col = "blue", axes = FALSE, ylim = c(min(y), max(y)),
+plot(1:52, y, type = "b", col = "blue", axes = FALSE, ylim = c(0, max(y)),
      xlab = "Week", ylab = "IMR")
 axis(1, at = c(1, 10, 20, 30, 40, 52))
-axis(2, las = 1)
-abline(h = c(0.05, 0.06, 0.07, 0.08, 0.09), lty = 3)
+axis(2, las = 1, at = c(0, 0.03, 0.06, 0.09))
+abline(h = c(0.05, 0.07, 0.09, 0.11), lty = 3)
+abline(h = 0)
 box()
 ```
-
-In accordance with the ideas of Bourgeouis-Pichat, we group the analyses into two parts, 
-*neonatal* (first 28 days) och *postneonatal* mortality (days 29--365).
-
-## Infant data
-
-In the previous chapter we introduced data on infant mortality from the Umeå-Skellefteå
-region 1895--1950, and here we introduce covariates of interest in the forthcoming  analyses, 
-see Table 
-
-
-
-### Neonatal mortality
 
 The average monthly neonatal mortality is shown in Figure \@ref(fig:neodata).
 
@@ -381,17 +363,16 @@ The average monthly neonatal mortality is shown in Figure \@ref(fig:neodata).
 neo <- age.window(infdat, c(0, 28 / 365))
 tneo <- toTpch(Surv(enter, exit, event) ~ week, data = neo, cuts = c(0, 28 / 365))
 y <- tneo$event / tneo$exposure
-plot(1:52, y, type = "b", col = "blue", axes = FALSE, ylim = c(min(y), max(y)),
-     xlab = "Week", ylab = "IMR")
+plot(1:52, y, type = "b", col = "blue", axes = FALSE, ylim = c(0, max(y)),
+     xlab = "Week", ylab = "NMR")
 axis(1, at = c(1, 10, 20, 30, 40, 52))
-axis(2, las = 1)
-abline(h = c(0.05, 0.06, 0.07, 0.08, 0.09), lty = 3)
+axis(2, las = 1, at = c(0, 0.2, 0.4, 0.6))
+abline(h = c(0.3, 0.4, 0.5, 0.6), lty = 3)
+abline(h = 0)
 box()
 ```
 
 The seasonal pattern is similar to the one we found above for infant mortality.
-
-## Postneonatal mortality
 
 The average monthly postneonatal mortality is shown in Figure \@ref(fig:pneodata).
 
@@ -399,15 +380,37 @@ The average monthly postneonatal mortality is shown in Figure \@ref(fig:pneodata
 pneo <- age.window(infdat, c(28 / 365, 1))
 tpneo <- toTpch(Surv(enter, exit, event) ~ week, data = pneo, cuts = c(28 / 365, 1))
 y <- tpneo$event / tpneo$exposure
-plot(1:52, y, type = "b", col = "blue", axes = FALSE, ylim = c(min(y), max(y)),
-     xlab = "Week", ylab = "IMR")
+plot(1:52, y, type = "b", col = "blue", axes = FALSE, ylim = c(0, max(y)),
+     xlab = "Week", ylab = "PNMR")
 axis(1, at = c(1, 10, 20, 30, 40, 52))
-axis(2, las = 1)
-abline(h = c(0.04, 0.05, 0.06, 0.07, 0.08, 0.09), lty = 3)
+axis(2, at = c(0, 0.02, 0.04, 0.06), las = 1)
+abline(h = c(0.03, 0.04, 0.05, 0.06, 0.07), lty = 3)
+abline(h = 0)
 box()
 ```
 
 The seasonal pattern is once again similar to the one we found for infant mortality.
+Next, the decline over the years in Figures \@ref(fig:longtrend) and \@ref(fig:ntrend).
+
+```{r longtrend, fig.cap = "Crude IMR by year, Umeå-Skellefteå 1895--1950.", fig.height = 4}
+trend <- toTpch(Surv(enter, exit, event) ~ year, data = infdat, cuts = c(0, 1))
+y <- trend$event / trend$exposure
+par(las = 1)
+plot(1895:1951, y, type = "b", col = "blue", ylim = c(0, max(y)), xlab = "Year",
+     ylab = "IMR")
+abline(h = 0)
+```
+
+
+```{r ntrend, fig.cap = "Crude NMR by year, Umeå-Skellefteå 1895--1950.", fig.height = 4}
+ndat <- age.window(infdat, c(0, 28 / 365))
+tnda <- toTpch(Surv(enter, exit, event) ~ year, data = ndat, cuts = c(0, 28 / 365))
+y <- tnda$event / tnda$exposure
+par(las = 1)
+plot(1895:1951, y, type = "b", col = "blue", ylim = c(0, max(y)), xlab = "Year",
+     ylab = "NMR")
+abline(h = 0)
+```
 
 ## Temperature
 
