@@ -35,6 +35,7 @@ knitr::opts_chunk$set(echo = FALSE, fig.path='figs/',fig.height=4,comment=NA)
 library(knitr)
 library(eha)
 g <- function(x) (log(1 + x))^3 # x in days.
+dg <- function(x) (3 * (log(1 + x))^2) / (1 + x)
 ginv <- function(y) exp(y^(1/3)) - 1
 ```
 
@@ -78,7 +79,8 @@ Its graph is shown in Figure \@ref(fig:figgraph).
 ##g <- function(x) (log(1 + x))^3  # Note: days!
 x <- seq(0, 365, length = 1000)
 y <- g(x)
-plot(x, y, type = "l", xlab = "age (days)", ylab = "g(age)", axes = FALSE, col = "blue")
+plot(x, y, type = "l", xlab = "age (days)", ylab = "g(age)", axes = FALSE, 
+     col = "blue")
 xat <- c(0, 28, 183, 365)
 yat <- g(xat)
 axis(1, at = xat)
@@ -127,11 +129,20 @@ region 1895--1950 until death, reaching the age of 1 year, or leaving follow-up 
 reason, whichever comes first. The first few lines (infants) are shown in Table 
 \@ref(tab:infdat3).
 
+If `event == FALSE`, then the infant died at age (in days) given by `exit`, otherwise
+the infant survived (at least) 365 days and follow-up is lost at `exit == 365`. For the
+time being, no covariates are involved. So, in Table \@ref(tab:infdat3), infants No. 1--4 survived, 
+while infant No. 5 died at age 162 days.
+
 ```{r infdat3}
 source("R/tbl.R")
-sinf <- infdat[, c("subreg", "sex", "birthdate", "exit", "event")]
-x <- head(infdat, 5)
-tbl(x, caption = "A few infants in the data set.")
+sinf <- infdat[, c("enter", "exit", "event")]
+x <- head(sinf, 4)
+y <- sinf[sinf$event == 1, ][1, ]
+z <- rbind(x, y)
+z$id <- 1:5
+z <- z[, c("id", "enter", "exit", "event")]
+tbl(z, caption = "A few infants in the data set.")
 ```
 
 
@@ -146,7 +157,7 @@ The BP procedure consists of two steps, to begin with:
 The result is shown in Figure \@ref(fig:ggplot2), with the original, untransformed
 data together with the transform, stretched to 365.
 
-```{r ggplot2, fig.cap = "BB plots with and without time transform, Umeå-Skellefteå 1895-1950.", fig.height = 5}
+```{r ggplot2, fig.cap = "BB plots with and without time transform, Umeå-Skellefteå 1895-1950."}
 nbths <- NROW(infdat)
 ##oldpar <- par(mfrow = c(2, 1))
 sur <- with(infdat, Surv(enter, exit, event))
@@ -185,10 +196,10 @@ that is, one minus the *Kaplan-Meier estimate* of the *survivor function*.
 
 ### Post-neonatal mortality
 
-We begin by studying mortality after age 28 days on the g-scale, BP predicts that it is approximately *uniform*. 
+We begin by studying mortality after age 28 days on the $g$-scale, *B-P* predicts that it is approximately *uniform*. 
 The uniform distribution, however, is not very useful in a survival analysis context, so we will
-investigate a close alternative, the *exponential * distribution. Modifying the BP plot by using successive 
-divison by *risk set size* instead of sample size should result in an approximately linear graph if the 
+investigate a close alternative, the *exponential * distribution. Modifying the *B-P* plot by using successive 
+divisions by *risk set size* instead of sample size should result in an approximately linear graph if the 
 exponential assumption is valid.
 
 ```{r pneo, fig.cap = "Relation between cumulative hazards and CDF for transformed post-neonatal mortality data."}
@@ -224,7 +235,7 @@ distributed random variable $T$ is
 F_T(t) = 1 - \exp(-\lambda t), \quad t, \lambda > 0, 
 \end{equation*}
 
-and the first order approximation of this cdf is
+and the first order approximation of this expression is
 
 \begin{equation*}
 F_T(t) \approx \lambda t, \quad t, \lambda > 0,
@@ -257,37 +268,82 @@ neo$enter <- g(neo$enter)
 neo$exit <- g(neo$exit)
 ```
 
-and then fit a piecewise constant hazards model with cutpoints at (0, 1, 2, 4, 8, 12, 18, 24, 30, 35, 39), see 
+and then fit a piecewise constant hazards model with cutpoints at $g(0, 1, 2, 4, 7, 11, 16, 22, 28)$, see 
 Figure \@ref(fig:pchneo).
 
 ```{r pchneo, fig.cap = "Neonatal hazard function with external component (dashed).", fig.height = 4}
-fitneo <- pchreg(Surv(enter, exit, event) ~ 1, data = neo, cuts = c(0,  1, 2, 4, 8, 12, 18, 24, 30, 35, 39))
-plot(fitneo, fn = "haz", col = "blue", main = "", xlab = "g(days)")
+neocuts <- g(c(0, 2, 4, 7, 11, 16, 22, 28))
+fitneo <- pchreg(Surv(enter, exit, event) ~ 1, data = neo, cuts = neocuts)
+plot(fitneo, fn = "haz", col = "blue", main = "", xlab = "g(days)", axes = FALSE)
+axis(1)
+axis(2, las = 1)
+box()
 abline(h = 0, v = 0)
 abline(h = posthaz, col = "red", lty = 2)
 ```
 
-Let us take a closer look at what happens at the end of the neonatal inerval:
+Let us take a closer look at what happens at the end of the neonatal interval, see 
+Figure \@ref(fig:pchneo2).
 
 ```{r pchneo2, fig.cap = "Neonatal hazard function with external component (dashed), right hand tail.", fig.height = 4}
-##fitneo <- pchreg(Surv(enter, exit, event) ~ 1, data = neo, cuts = c(0,  1, 2, 4, 8, 12, 18, 24, 30, 39))
-plot(fitneo, fn = "haz", col = "blue", main = "", xlab = "g(days)", xlim = c(15, 39))
+##fitneo <- pchreg(Surv(enter, exit, event) ~ 1, data = neo, cuts = neocuts)
+par(las = 1)
+plot(fitneo, fn = "haz", col = "blue", main = "", xlab = "g(days)", xlim = c(5, 39))
 abline(h = 0, v = 0)
 abline(h = posthaz, col = "red", lty = 2)
 ```
 
 A smooth transition to the post-neonatal mortality.
 
-### Putting it together
+### Putting all together
+
+Looking at the full infant mortality interval on the $g$-scale, we have a piecewise 
+constant hazards model with cutpoints at $g(0, 1, 2, 4, 7, 11, 16, 22, 28)$, see 
+Figure \@ref(fig:together) (where the value close to zero is truncated).
+
+```{r together, fig.cap = "Hazard function, infant mortality, transformed time."}
+allcuts <- c(neocuts, g(365))
+ginfdat <- infdat
+ginfdat$exit <- g(ginfdat$exit)
+fitall <- pchreg(Surv(enter, exit, event) ~ 1, data = ginfdat, cuts = allcuts)
+plot(fitall, fn = "haz", col = "blue", main = "", xlab = "g(Days)", axes = FALSE,
+     ylim = c(0, 0.002))
+pcuts <- g(c(0, 28, 183, 365))
+axis(1, at = pcuts, labels = round(pcuts))
+axis(2, las = 1)
+box()
+abline(h = 0, v = 0)
+```
+
+Now we would like to see the content of Figure \@ref(fig:together) on the natural time 
+scale. If $Y = g(T)$, we have the relation between their respective hazard functions
+
+\begin{equation*}
+h_T(t) = \frac{d}{dt} g(t) h_Y\bigl(g^{-1}(t)\bigr), \quad 0 \le t \le 365,
+\end{equation*}
+
+and with $h_Y$ shown in Figure \@ref(fig:together), we get $h_T$ in Figure 
+\@ref(fig:allnorm).
+
+```{r allnorm, fig.cap = "Hazard function, infant mortality, natural time scale."}
+y <- hazards(fitall, cum = FALSE)$x
+hy <- hazards(fitall, cum = FALSE)$y
+te <- ginv(y)
+hte <- dg(te) * hy
+plot(te, hte, type = "s", col = "blue", xlab = "Days", ylab = "", axes = FALSE,
+     ylim = c(0, 0.002))
+axis(1, at = ginv(pcuts))
+axis(2, las = 1)
+box()
+abline(h = 0, v = 0)
+```
+
+
 
 
 # Data
 
-## Infant data
 
-In the previous chapter we introduced data on infant mortality from the Umeå-Skellefteå
-region 1895--1950, and here we introduce covariates of interest in the forthcoming  analyses, 
-see Table 
 
 ## Weather data
 
@@ -307,6 +363,14 @@ box()
 
 In accordance with the ideas of Bourgeouis-Pichat, we group the analyses into two parts, 
 *neonatal* (first 28 days) och *postneonatal* mortality (days 29--365).
+
+## Infant data
+
+In the previous chapter we introduced data on infant mortality from the Umeå-Skellefteå
+region 1895--1950, and here we introduce covariates of interest in the forthcoming  analyses, 
+see Table 
+
+
 
 ### Neonatal mortality
 
