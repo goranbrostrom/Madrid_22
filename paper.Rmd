@@ -27,6 +27,7 @@ fontsize: 11pt
 header-includes:
 - \usepackage[utf8]{inputenc}
 - \usepackage{graphicx}
+- \usepackage{a4wide}
 abstract: "The effect of extreme temperatures on infant mortality in the Umeå region 1895-1950 is studied in a biometric analysis setting."
 ---
 
