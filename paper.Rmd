@@ -28,7 +28,9 @@ header-includes:
 - \usepackage[utf8]{inputenc}
 - \usepackage{graphicx}
 - \usepackage{a4wide}
-abstract: "The effect of extreme temperatures on infant mortality in the Umeå region 1895-1950 is studied in a biometric analysis setting."
+- \usepackage{endfloat}
+- \renewcommand{\efloatseparator}{\mbox{}}
+abstract: "The effect of extreme temperatures on infant mortality in the Umeå region 1895-1950 is studied in a biometric analysis setting. More precisely, the effect of climate and weather, measured by temperature, is investigated. It turns out that climate is more important than weather, low average temperatures are more important than temporary dips in temperature. The investigated geographical region is situated too far north for bad effects of high temperatures to show."
 ---
 
 ```{r setup, include=FALSE}
@@ -462,4 +464,76 @@ box()
 par(oldpar)
 ```
 
+# Infant mortality, climate, and weather
 
+The analyses are performed on the log-cube scale with proportional hazards modelling. Note that
+the property of proportional hazards are preserved under a strictly monotone increasing time transform.
+However, the estimates of baseline distribution characteristics will change.
+
+We start by performing separate analyses for neonatal and postneonatal mortality. Then we make comparisons.
+
+## Postneonatal mortality
+
+This is the simplest part, because *B-P* predicts that the baseline distribution (given the log-cube
+transformation) is *exponential*, that is, the hazard function is *constant*
+
+```{r postanal, results='asis'}
+infdat$parity <- cut(infdat$parity, c(-2, 1.5, 4.5, 19), labels = c("1", "2-4", "5+"))
+pneo <- age.window(infdat, c(28 / 365, 1))
+##
+pneo$enter <- g(pneo$enter * 365)
+pneo$exit <- g(pneo$exit * 365)
+##
+pneo$emintemp <- round(pneo$emintemp)
+##
+tpneo <- toTpch(Surv(enter, exit, event) ~ sex + socBranch + socStatus + illeg + parity + cold + emintemp + year + week, 
+                data = pneo, cuts = g(c(28, 365)))
+##fit2 <- phreg(Surv(enter - g(28), exit - g(28), event) ~ sex + socBranch + socStatus + cold + emintemp, 
+  ##           data = pneo, shape = 1)
+##fit.pch <- pchreg(Surv(enter, exit, event) ~ sex + socBranch + socStatus + cold + emintemp, 
+  ##           data = pneo, cuts = g(c(28, 365)))
+fit.tpch <- tpchreg(oe(event, exposure) ~ sex + socBranch + socStatus + illeg + parity + I(year - 1923) + cold + emintemp, 
+                    data = tpneo, time = age)
+dr <- drop1(fit.tpch, test = "Chisq")
+ltx(fit.tpch, dr = dr, caption = "Postneonatal mortality", label = "tab:postanal")
+```
+
+The result in Table \@ref(tab:postanal) shows that *climate* (`emintemp`) is more important than 
+*weather* (`cold`). Moreover, no signs of interaction between weather or climate and the rest of 
+covariates (not shown).
+
+## Neonatal mortality
+
+It turns out that here we have some significant interactions, with `sex` involved.
+Maybe surprising. So we run separate analyses for the sexes.
+
+### Girls
+
+```{r neoanal, results = 'asis'}
+neo <- age.window(infdat, c(0, 28 /365))
+neo$exit <- g(neo$exit * 365)
+neo$enter <- g(neo$enter * 365)
+fit.ph <- coxreg(Surv(enter, exit, event) ~  socStatus + illeg + parity + I(year - 1923) + socBranch  + cold + emintemp,
+                 data = neo[neo$sex == "girl", ])
+dr <- drop1(fit.ph, test = "Chisq")
+ltx(fit.ph, dr = dr, caption = "Neonatal mortality, girls", label = "tab:neonatal")
+```
+
+Same here, *climate* is more important than *weather*.
+
+### Boys
+
+```{r neoanalboys, results = 'asis'}
+fit.ph <- coxreg(Surv(enter, exit, event) ~  socStatus + illeg + parity + I(year - 1923) + socBranch  + cold + emintemp,
+                 data = neo[neo$sex == "boy", ])
+dr <- drop1(fit.ph, test = "Chisq")
+ltx(fit.ph, dr = dr, caption = "Neonatal mortality, boys", label = "tab:neonatal")
+```
+
+Here, however, boys are sensitive to temperatures below average, in addition to the 
+sensitivity for cold climate.
+
+# Conclusion
+
+Remains to be written. Feels like two papers, one about Bourgeouis-Pichat and one
+about climate and weather. Maybe discuss exogeneity/endogeneity?
