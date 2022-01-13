@@ -28,7 +28,7 @@ header-includes:
 - \usepackage[utf8]{inputenc}
 - \usepackage{graphicx}
 - \usepackage{a4wide}
-- \usepackage{endfloat}
+- \usepackage[figuresonly]{endfloat}
 - \renewcommand{\efloatseparator}{\mbox{}}
 abstract: "The effect of extreme temperatures on infant mortality in the Umeå region 1895-1950 is studied in a biometric analysis setting. More precisely, the effect of climate and weather, measured by temperature, is investigated. It turns out that climate is more important than weather, low average temperatures are more important than temporary dips in temperature. The investigated geographical region is situated too far north for bad effects of high temperatures to show."
 ---
