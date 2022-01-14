@@ -115,7 +115,7 @@ umetemp <- readRDS("data/umetemp.rds")
 bjurtemp <- readRDS("data/bjurtemp.rds")
 ##
 
-lagg <- 3 / 365  ## NOTE!!
+lagg <- 0 ##3 / 365  ## NOTE!!
 tempvars <-  c("heat", "aver", "cold", "emintemp", "emeantemp", "emaxtemp", 
                "week", "year") 
 ## Ume:
