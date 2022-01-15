@@ -57,12 +57,12 @@ separately for neonatal  and postneonatal mortality, and for winter and summer s
 and in a joint analysis, the classification into endogenous and exogenous factors will be discussed.
 
 One important reason for studying neonatal and postneonatal mortality separately is the 
-findings by Bourgeouis-Pichat [@bp51a;  @bp51b] about endogeneous and exogeneous mortality and the log-cube transform,
+findings by Bourgeois-Pichat [@bp51a;  @bp51b] about endogenous and exogenous mortality and the log-cube transform,
 so we start by recollecting his results and formulate them in a modern statistical setting.
 
-# The Bourgeouis-Pichat model
+# The Bourgeois-Pichat model
 
-Bourgeouis-Picat (*B-P*) suggests that mortality
+Bourgeois-Pichat (*B-P*) suggests that mortality
 during the last eleven months (28 days) of infancy follows a *uniform* distribution
 given a specific transformation of time (age), the 
 *log-cube transformation* $g$. 
