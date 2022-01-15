@@ -464,11 +464,11 @@ box()
 par(oldpar)
 ```
 
-# Infant mortality, climate, and weather
+# Infant mortality, climate and weather
 
 The analyses are performed on the log-cube scale with proportional hazards modelling. Note that
 the property of proportional hazards are preserved under a strictly monotone increasing time transform.
-However, the estimates of baseline distribution characteristics will change.
+However, the estimates of baseline distribution characteristics will change, of course.
 
 We start by performing separate analyses for neonatal and postneonatal mortality. Then we make comparisons.
 
@@ -490,8 +490,9 @@ pneo$exit <- g(pneo$exit * 365)
 ##
 pneo$emintemp <- round(pneo$emintemp)
 ##
-tpneo <- toTpch(Surv(enter, exit, event) ~ sex + socBranch + socStatus + illeg + parity + period +
-                    cold + emintemp + season + subreg, 
+tpneo <- toTpch(Surv(enter, exit, event) ~ sex + socBranch + socStatus + illeg + parity + 
+                    period + cold
+                + emintemp + season + subreg, 
                 data = pneo, cuts = g(c(28, 365)))
 ##fit2 <- phreg(Surv(enter - g(28), exit - g(28), event) ~ sex + socBranch + socStatus + cold + emintemp, 
   ##           data = pneo, shape = 1)
