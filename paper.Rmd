@@ -520,7 +520,7 @@ Maybe surprising. So we run separate analyses for the sexes.
 neo <- age.window(infdat, c(0, 28 /365))
 neo$exit <- g(neo$exit * 365)
 neo$enter <- g(neo$enter * 365)
-fit.ph <- coxreg(Surv(enter, exit, event) ~  socStatus + illeg + parity + period + socBranch  + cold + emintemp + subreg + season,
+fit.ph <- coxph(Surv(enter, exit, event) ~  socStatus + illeg + parity + period + socBranch  + cold + emintemp + subreg + season,
                  data = neo[neo$sex == "girl", ])
 dr <- drop1(fit.ph, test = "Chisq")
 ltx(fit.ph, dr = dr, caption = "Neonatal mortality, girls.", label = "tab:neonatal")
