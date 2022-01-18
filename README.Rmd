@@ -15,8 +15,7 @@ knitr::opts_chunk$set(
 
 # Paper for presentation in Madrid, March 2022
 
-The file *paper.pdf* is the result of this project. Updated 
-
-`r Sys.time()`.
+The file *paper.pdf* is the result of this project. Note the time stamp on the front
+page, the report is updated regularly for some time.
 
 

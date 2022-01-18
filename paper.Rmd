@@ -1,7 +1,7 @@
 ---
 title: "A biometric analysis of infant mortality and temperature, northern Sweden 1895-1950"
 author: "Göran Broström and Tommy Bengtsson"
-date: "`r Sys.Date()`"
+date: "`r Sys.time()`"
 output:
   bookdown::pdf_document2:
     citation_package: natbib
@@ -32,6 +32,7 @@ header-includes:
 - \renewcommand{\efloatseparator}{\mbox{}}
 abstract: "The effect of extreme temperatures on infant mortality in the Umeå region 1895-1950 is studied in a biometric analysis setting. More precisely, the effect of climate and weather, measured by temperature, is investigated. It turns out that climate is more important than weather, low average temperatures are more important than temporary dips in temperature. The investigated geographical region is situated too far north for bad effects of high temperatures to show."
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, fig.path='figs/',fig.height=3,comment=NA)
@@ -517,10 +518,11 @@ Maybe surprising. So we run separate analyses for the sexes.
 ### Girls
 
 ```{r neoanal, results = 'asis'}
+##library(survival)
 neo <- age.window(infdat, c(0, 28 /365))
 neo$exit <- g(neo$exit * 365)
 neo$enter <- g(neo$enter * 365)
-fit.ph <- coxph(Surv(enter, exit, event) ~  socStatus + illeg + parity + period + socBranch  + cold + emintemp + subreg + season,
+fit.ph <- coxreg(Surv(enter, exit, event) ~  socStatus + illeg + parity + period + socBranch  + cold + emintemp + subreg,
                  data = neo[neo$sex == "girl", ])
 dr <- drop1(fit.ph, test = "Chisq")
 ltx(fit.ph, dr = dr, caption = "Neonatal mortality, girls.", label = "tab:neonatal")
@@ -531,7 +533,7 @@ Same here, *climate* is more important than *weather*.
 ### Boys
 
 ```{r neoanalboys, results = 'asis'}
-fit.ph <- coxreg(Surv(enter, exit, event) ~  socStatus + illeg + parity + period + socBranch  + cold + emintemp + subreg + season,
+fit.ph <- coxreg(Surv(enter, exit, event) ~  socStatus + illeg + parity + period + socBranch  + cold + emintemp + subreg,
                  data = neo[neo$sex == "boy", ])
 dr <- drop1(fit.ph, test = "Chisq")
 ltx(fit.ph, dr = dr, caption = "Neonatal mortality, boys.", label = "tab:neonatalboys")
