@@ -48,25 +48,26 @@ ginv <- function(y) exp(y^(1/3)) - 1
 The impact of ambient temperature variations on infant mortality is studied for 
 a northern Sweden coastal area, the Umeå and Skellefteå regions, during the 
 first half of the twentieth century. Two recent papers [@junkka; @karlsson] studied 
-neonatal mortality and climate variations in the same geographical area during the 
+neonatal mortality and temperature variations in a larger geographical area containing 
+the present one during the 
 years 1880--1950. Climate and mortality in general is a research area that has 
 generated great interest over the last years, see @tbgb10.
 
 The effect of seasonal variation and the occurrence of extreme monthly temperatures
 is studied and interacted with sex, social class, and legitimacy. Studies are performed 
 separately for neonatal  and postneonatal mortality, and for winter and summer seasons, 
-and in a joint analysis, the classification into endogenous and exogenous factors will be discussed.
+and the classification into endogenous and exogenous factors will be discussed.
 
 One important reason for studying neonatal and postneonatal mortality separately is the 
-findings by Bourgeois-Pichat [@bp51a;  @bp51b] about endogenous and exogenous mortality and the log-cube transform,
+empirical findings by Bourgeois-Pichat [@bp51a;  @bp51b] about endogenous and exogenous mortality and the log-cube transform,
 so we start by recollecting his results and formulate them in a modern statistical setting.
 
 # The Bourgeois-Pichat model
 
 Bourgeois-Pichat (*B-P*) suggests that mortality
-during the last eleven months (28 days) of infancy follows a *uniform* distribution
+during the last eleven months of infancy follows a *uniform* distribution
 given a specific transformation of time (age), the 
-*log-cube transformation* $g$. 
+*log-cube transformation* $g$, see equation \@ref(eq:g), 
 
 \begin{equation*}\label{eq:g}
 g(t) = \log^3(1 + t), \quad 0 \le t \le 365,
@@ -107,7 +108,7 @@ S(t) = 1 - \alpha t, \, 0 \le t \le g(365).
 \end{equation}
 
 Furthermore, it is assumed that the *endogeneous* component is non-zero only during the first
-month of life.
+28 days of life.
 
 Next we apply the model to our infant mortality data from the Umeå-Skellefteå region.
 
@@ -151,7 +152,7 @@ The BP procedure consists of three steps:
 3.   plot the cumulative sum of the number of deaths vs. age.
 
 The result is shown in Figure \@ref(fig:ggplot2), together with the original
-data.  The transform data is stretced  stretched to 365 for easier comparison.
+data.  The transform data is stretched  stretched to 365 for easier comparison.
 
 ```{r ggplot2, fig.cap = "BB plots with and without time transform, Umeå-Skellefteå 1895-1950."}
 nbths <- NROW(infdat)
@@ -257,7 +258,7 @@ Is the sum of two components, *external* and *internal* causes. According to the
 theory, the external component is equal to the postneonatal mortality, which contains 
 only an external component. 
 
-We create the neonatal data set by censor all lives at the age 28:
+We create the neonatal data set by censor all lives at the age 28 days:
 
 ```{r neon, echo = TRUE}
 neo <- age.window(infdat, c(0, 28))
@@ -265,14 +266,21 @@ neo$enter <- g(neo$enter)
 neo$exit <- g(neo$exit)
 ```
 
-and then fit a piecewise constant hazards model with cutpoints at $g(0, 2, 4, 7, 11, 16, 22, 28)$, see 
+```{r defcuts}
+neocuts <- c(0, 2, 5, 8, 12, 17, 22, 25, 28)
+pcuts <- c(neocuts, 365)
+gneocuts <- g(neocuts)
+gpcuts <- g(pcuts)
+```
+
+
+and then fit a piecewise constant hazards model with cutpoints at `r gneocuts`, see 
 Figure \@ref(fig:pchneo).
 
 ```{r pchneo, fig.cap = "Neonatal hazard function with external component (dashed).", fig.height = 3}
-neocuts <- g(c(0, 2, 4, 7, 11, 16, 22, 28))
-fitneo <- pchreg(Surv(enter, exit, event) ~ 1, data = neo, cuts = neocuts)
-plot(fitneo, fn = "haz", col = "blue", main = "", xlab = "g(days)", axes = FALSE)
-axis(1)
+fitneo <- pchreg(Surv(enter, exit, event) ~ 1, data = neo, cuts = gneocuts)
+plot(fitneo, fn = "haz", col = "blue", main = "", xlab = "Age (days)", axes = FALSE, lwd = 1.5)
+axis(1, at = gneocuts, labels = neocuts)
 axis(2, las = 1)
 box()
 abline(h = 0, v = 0)
@@ -286,9 +294,13 @@ Figure \@ref(fig:pchneo2). It shows a smooth transition towards the postneonatal
 ```{r pchneo2, fig.cap = "Neonatal hazard function with external component (dashed), right hand tail.", fig.height = 3}
 ##fitneo <- pchreg(Surv(enter, exit, event) ~ 1, data = neo, cuts = neocuts)
 par(las = 1)
-plot(fitneo, fn = "haz", col = "blue", main = "", xlab = "g(days)", xlim = c(5, 39))
+plot(fitneo, fn = "haz", col = "blue", main = "", xlab = "Age (days)", lwd = 1.5,
+     xlim = g(c(5, 28)), axes = FALSE)
+axis(1, at = gneocuts, labels = neocuts)
+axis(2)
+box()
 abline(h = 0, v = 0)
-abline(h = posthaz, col = "red", lty = 2)
+abline(h = posthaz, col = "red", lty = 2, lwd = 1.5)
 ```
 
 
@@ -298,15 +310,14 @@ Looking at the full infant mortality interval on the $g$-scale, we have a piecew
 constant hazards model with cutpoints at $g(0, 1, 2, 4, 7, 11, 16, 22, 28)$, see 
 Figure \@ref(fig:together) (where the value close to zero is truncated).
 
-```{r together, fig.cap = "Hazard function, infant mortality, transformed time."}
-allcuts <- c(neocuts, g(365))
+```{r together, fig.cap = "Hazard function, infant mortality, transformed time.", fig.height=6}
 ginfdat <- infdat
 ginfdat$exit <- g(ginfdat$exit)
-fitall <- pchreg(Surv(enter, exit, event) ~ 1, data = ginfdat, cuts = allcuts)
-plot(fitall, fn = "haz", col = "blue", main = "", xlab = "g(Days)", axes = FALSE,
-     ylim = c(0, 0.002))
-pcuts <- g(c(0, 28, 183, 365))
-axis(1, at = pcuts, labels = round(pcuts))
+fitall <- pchreg(Surv(enter, exit, event) ~ 1, data = ginfdat, cuts = gpcuts)
+plot(fitall, fn = "haz", col = "blue", main = "", xlab = "Age (days)", axes = FALSE,
+     lwd = 1.5)
+
+axis(1, at = gpcuts, labels = pcuts)
 axis(2, las = 1)
 box()
 abline(h = 0, v = 0)
@@ -480,7 +491,7 @@ transformation) is *exponential*, that is, the hazard function is *constant*.
 
 ```{r postanal, results='asis'}
 infdat$parity <- cut(infdat$parity, c(-2, 1.5, 4.5, 19), labels = c("1", "2-4", "5+"))
-infdat$period <- cut(infdat$birthdate, c(1895, 1914, 1935, 1951))
+infdat$period <- cut(infdat$birthdate, c(1895, 1914, 1935, 1951), dig.lab = 5)
 levels(infdat$subreg) <- c("ume", "ske")
 infdat$season <- cut(infdat$week, c(-1, 9.5, 22.5, 35.5, 48.5, 52.5), labels = c("winter", "spring", "summer", "fall", "winter"))
 infdat$season <- as.factor(infdat$season)
