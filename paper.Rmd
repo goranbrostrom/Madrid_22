@@ -252,9 +252,13 @@ posthaz <- with(ginfdat, sum(event) / sum(exit - enter))
 which evaluates to `r format(posthaz, digits = 3, scientific = TRUE)`. A small number, but remember
 that the time unit is defined on the scale defined by the function $g$ (close to *day*).
 
+```{r excum, echo = FALSE}
+fitex <- pchreg(Surv(enter, exit, event) ~ 1, cuts = g(c(28, 365)), data = ginfdat)
+```
+
 ### Neonatal mortality
 
-Is the sum of two components, *external* and *internal* causes. According to the *B-P*
+Neonatal mortality is, according to Bourgeois-Pichat, the sum of two components, *external* and *internal* causes. According to the *B-P*
 theory, the external component is equal to the postneonatal mortality, which contains 
 only an external component. 
 
@@ -274,7 +278,7 @@ gpcuts <- g(pcuts)
 ```
 
 
-and then fit a piecewise constant hazards model with cutpoints at `r gneocuts`, see 
+and then fit a piecewise constant hazards model with cutpoints at g(`r neocuts`), see 
 Figure \@ref(fig:pchneo).
 
 ```{r pchneo, fig.cap = "Neonatal hazard function with external component (dashed).", fig.height = 3}
@@ -304,11 +308,11 @@ abline(h = posthaz, col = "red", lty = 2, lwd = 1.5)
 ```
 
 
-### Putting all together
+### Putting it all together
 
 Looking at the full infant mortality interval on the $g$-scale, we have a piecewise 
-constant hazards model with cutpoints at $g(0, 1, 2, 4, 7, 11, 16, 22, 28)$, see 
-Figure \@ref(fig:together) (where the value close to zero is truncated).
+constant hazards model with cutpoints at $g(0, 2, 5, 8, 12, 17, 22, 25, 28, 365)$, see 
+Figure \@ref(fig:together).
 
 ```{r together, fig.cap = "Hazard function, infant mortality, transformed time.", fig.height=6}
 ginfdat <- infdat
@@ -323,6 +327,7 @@ box()
 abline(h = 0, v = 0)
 ```
 
+<!--
 Now we would like to see the content of Figure \@ref(fig:together) on the natural time 
 scale. If $Y = g(T)$, we have the relation between their respective hazard functions
 
@@ -333,37 +338,63 @@ h_T(t) = \frac{d}{dt} g(t) h_Y\bigl(g^{-1}(t)\bigr), \quad 0 \le t \le 365,
 and with $h_Y$ shown in Figure \@ref(fig:together), we get $h_T$ in Figure 
 \@ref(fig:allnorm) **(must be checked!)**.
 
-```{r allnorm, fig.cap = "Hazard function, infant mortality, natural time scale."}
+```{r allnorm, fig.cap = "Hazard function, infant mortality, natural time scale.", eval = FALSE}
 y <- hazards(fitall, cum = FALSE, n.points = 3000)$x
 hy <- hazards(fitall, cum = FALSE, n.points = 3000)$y
 te <- ginv(y)
 hte <- dg(te) * hy
 plot(te, hte, type = "s", col = "blue", xlab = "Days", ylab = "", axes = FALSE,
-     ylim = c(0, 0.002)) 
-     ##xlim = c(0, 28))
-axis(1, at = ginv(pcuts))
+     ##ylim = c(0, 0.002)) 
+     xlim = c(0, 28))
+axis(1, at = pcuts)
 axis(2, las = 1)
 box()
 abline(h = 0, v = 0)
 ```
 
+-->
+
+The way to disentangle the endogenous and exogenous componets is to start with a plot 
+of the cumulative hazard function (Figure \@ref(fig:separ)).
+
+```{r separ, fig.cap = "Separation of exogenous and endogenous infant mortality (cumulative hazards, per cent).", fig.width = 5, fig.height = 4}
+plot(fitall, fn = "cum", col = "blue", main = "", xlab = "Age (days)", axes = FALSE,
+     lwd = 1.5, ylab = "Cumulative hazards")
+
+axis(1, at = c(0, g(28), g(365)), labels = c(0, 28, 365), pos = 0)
+axis(2, las = 1, pos = 0, at = c(0, 0.02, 0.04, 0.06), labels = c(0, 2, 4, 6))
+#box()
+abline(v = 0)
+texhaz <- g(365) * fitex$hazards[1, 1]
+lines(c(0, g(365)), c(0, texhaz), col = "red", lwd = 1.5)
+atte <- c(0.0000, 0.0763, texhaz)
+axis(4, at = atte, labels = 100 * round(atte, 4), las = 1, cex = 0.5,
+     pos = g(365))
+abline(v = g(365))
+text(100, 0.03, "Exogenous", col = "red", srt = 22, cex = 0.8)
+text(100, 0.053, "Endogenous plus exogenous", col = "blue", srt = 22, cex = 0.8)
+axis(3, at =  c(0, g(28), g(365)), labels = c(0, 28, 365))
+```
+
+So we can see from Figure \@ref(fig:separ) that of the total mortality, 
+`r round(5.27 / 7.63 * 100, 1)` per cent is exogenous and the rest is endogenous.
+AS always, this requires that we trust the Bourgeois-Pichat model.
+
+# Infant mortality, climate and weather
 
 
+## Data
 
-# Data
-
-
-
-## Infant mortality, summary graphs
+### Infant mortality, summary graphs
 
 Figure \@ref(fig:mortstat) shows the average monthly crude infant mortality, and a clear seasonal pattern is visible.
 
-```{r mortstat, fig.cap = "Crude infant mortality by week of year, Umeå/Skellefteå 1895--1950."}
+```{r mortstat, fig.cap = "Crude infant mortality by week of year, Umeå/Skellefteå 1895--1950.", fig.height = 4}
 infdat <- readRDS("data/infdat3_year3.rds")
 tid <- toTpch(Surv(enter, exit, event) ~ week, data = infdat, cuts = c(0, 1))
 y <- tid$event / tid$exposure
 plot(1:52, y, type = "b", col = "blue", axes = FALSE, ylim = c(0, max(y)),
-     xlab = "Week", ylab = "IMR")
+     xlab = "Week", ylab = "IMR", cex = 0.7, lwd = 1.5)
 axis(1, at = c(1, 10, 20, 30, 40, 52))
 axis(2, las = 1, at = c(0, 0.03, 0.06, 0.09))
 abline(h = c(0.05, 0.07, 0.09, 0.11), lty = 3)
@@ -373,12 +404,12 @@ box()
 
 The average monthly neonatal mortality is shown in Figure \@ref(fig:neodata).
 
-```{r neodata, fig.cap = "Crude neonatal mortality by week of year, Umeå/Skellefteå 1895--1950."}
+```{r neodata, fig.cap = "Crude neonatal mortality by week of year, Umeå/Skellefteå 1895--1950.", fig.height = 4}
 neo <- age.window(infdat, c(0, 28 / 365))
 tneo <- toTpch(Surv(enter, exit, event) ~ week, data = neo, cuts = c(0, 28 / 365))
 y <- tneo$event / tneo$exposure
 plot(1:52, y, type = "b", col = "blue", axes = FALSE, ylim = c(0, max(y)),
-     xlab = "Week", ylab = "NMR")
+     xlab = "Week", ylab = "NMR", cex = 0.7, lwd = 1.5)
 axis(1, at = c(1, 10, 20, 30, 40, 52))
 axis(2, las = 1, at = c(0, 0.2, 0.4, 0.6))
 abline(h = c(0.3, 0.4, 0.5, 0.6), lty = 3)
@@ -390,12 +421,12 @@ The seasonal pattern is similar to the one we found above for infant mortality.
 
 The average monthly postneonatal mortality is shown in Figure \@ref(fig:pneodata).
 
-```{r pneodata, fig.cap = "Crude postneonatal mortality by week of year, Umeå/Skellefteå 1895--1950."}
+```{r pneodata, fig.cap = "Crude postneonatal mortality by week of year, Umeå/Skellefteå 1895--1950.", fig.height = 4}
 pneo <- age.window(infdat, c(28 / 365, 1))
 tpneo <- toTpch(Surv(enter, exit, event) ~ week, data = pneo, cuts = c(28 / 365, 1))
 y <- tpneo$event / tpneo$exposure
 plot(1:52, y, type = "b", col = "blue", axes = FALSE, ylim = c(0, max(y)),
-     xlab = "Week", ylab = "PNMR")
+     xlab = "Week", ylab = "PNMR", cex = 0.7, lwd = 1.5)
 axis(1, at = c(1, 10, 20, 30, 40, 52))
 axis(2, at = c(0, 0.02, 0.04, 0.06), las = 1)
 abline(h = c(0.03, 0.04, 0.05, 0.06, 0.07), lty = 3)
@@ -411,7 +442,8 @@ trend <- toTpch(Surv(enter, exit, event) ~ year, data = infdat, cuts = c(0, 1))
 y <- trend$event / trend$exposure
 par(las = 1)
 plot(1895:1951, y, type = "b", col = "blue", ylim = c(0, max(y)), xlab = "Year",
-     ylab = "IMR")
+     ylab = "IMR", lwd = 1.5, cex = 0.7)
+abline(h = c(0.05, 0.1, 0.15), lty = 3)
 abline(h = 0)
 ```
 
@@ -422,11 +454,12 @@ tnda <- toTpch(Surv(enter, exit, event) ~ year, data = ndat, cuts = c(0, 28 / 36
 y <- tnda$event / tnda$exposure
 par(las = 1)
 plot(1895:1951, y, type = "b", col = "blue", ylim = c(0, max(y)), xlab = "Year",
-     ylab = "NMR")
+     ylab = "NMR", lwd = 1.5, cex = 0.7)
 abline(h = 0)
+abline(h = c(0.2, 0.4, 0.6), lty = 3)
 ```
 
-## Temperature
+### Temperature
 
 ```{r readtemp}
 umetemp <- readRDS("data/umetemp.rds")
@@ -440,20 +473,20 @@ noon, and evening. Weekly averages are calculated year by year, and deviations f
 the averages of the weekly averages are used as a time-varying *communal covariate*. See Figure 
 \@ref(fig:monavgtemp) for the monthly distributions.
 
-```{r monavgtemp, fig.cap="Weekly max and min temperature averages, 1895--1950."}
-oldpar <- par(mfrow= c(1, 2))
+```{r monavgtemp, fig.cap="Weekly max and min temperature averages, 1895--1950.", fig.height = 4}
+oldpar <- par(mfrow = c(1, 2))
 ## Umeå:
 umaxavg <- umetemp$emaxtemp[1:52]
 uminavg <- umetemp$emintemp[1:52]
 plot(1:52, umaxavg, ylim = c(-20, 30), type = "b", col = "red", axes = FALSE,
-     xlab = "Week", ylab = "Temperature (C)")
+     xlab = "Week", ylab = "Temperature (C)", cex = 0.6, lwd = 0.7)
 text(17, 27, "Umeå")
 axis(1, at = c(1, 10, 29, 43, 52))
 axis(2, las = 1)
 abline(h = 0)
 abline(v = 29, lty = 3)
 abline(h = c(-20, -10, 10, 20), lty = 3)
-lines(1:52, uminavg, type = "b", col = "blue")
+lines(1:52, uminavg, type = "b", col = "blue", cex = 0.6, lwd = 0.7)
 text(8, 11, "max", col = "red")
 text(20, -9, "min", col = "blue")
 box()
@@ -461,14 +494,14 @@ box()
 bmaxavg <- bjurtemp$emaxtemp[1:52]
 bminavg <- bjurtemp$emintemp[1:52]
 plot(1:52, bmaxavg, ylim = c(-20, 30), type = "b", col = "red", axes = FALSE,
-     xlab = "Week", ylab = "Temperature (C)")
+     xlab = "Week", ylab = "Temperature (C)", cex = 0.6, lwd = 0.7)
 text(17, 27, "Skellefteå")
 axis(1, at = c(1, 10, 29, 43, 52))
 axis(2, las = 1)
 abline(h = 0)
 abline(v = 29, lty = 3)
 abline(h = c(-20, -10, 10, 20), lty = 3)
-lines(1:52, bminavg, type = "b", col = "blue")
+lines(1:52, bminavg, type = "b", col = "blue", cex = 0.6, lwd = 0.7)
 text(8, 11, "max", col = "red")
 text(20, -9, "min", col = "blue")
 box()
@@ -476,7 +509,18 @@ box()
 par(oldpar)
 ```
 
-# Infant mortality, climate and weather
+Time trends of yearly average temperatures, see Figure 
+
+```{r longterm}
+bmtemp <- rbind(umetemp, bjurtemp)
+umt <- with(bmtemp, tapply(meantemp, year, mean))
+plot(1894:1951, umt, type = "b", col = "blue", xlab = "Year",
+     ylab = "Mean temperature", lwd = 1.5, cex = 0.7, ylim = c(0, 7))
+abline(h = 0)
+abline(h = 1:6, lty = 3)
+```
+
+## Statistical modelling
 
 The analyses are performed on the log-cube scale with proportional hazards modelling. Note that
 the property of proportional hazards are preserved under a strictly monotone increasing time transform.
