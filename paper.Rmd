@@ -143,7 +143,7 @@ tbl(z, caption = "A few infants in the data set.")
 
 ### The Bourgeois-Pichat procedure
 
-The BP procedure consists of three steps:
+The B-P procedure consists of three steps:
 
 1.   Order the data set ascending by `exit`,
 
@@ -154,7 +154,7 @@ The BP procedure consists of three steps:
 The result is shown in Figure \@ref(fig:ggplot2), together with the original
 data.  The transform data is stretched  stretched to 365 for easier comparison.
 
-```{r ggplot2, fig.cap = "BB plots with and without time transform, Umeå-Skellefteå 1895-1950."}
+```{r ggplot2, fig.cap = "B-B plots with and without time transform, Umeå-Skellefteå 1895-1950.", fig.height = 4}
 nbths <- NROW(infdat)
 ##oldpar <- par(mfrow = c(2, 1))
 sur <- with(infdat, Surv(enter, exit, event))
@@ -218,8 +218,8 @@ box()
 x <- ser[[1]][[1]][, 1]
 y <- ser[[1]][[1]][, 2]
 lines(x, 1 - y, col = "red", lty = 2)
-legend("topleft", legend = c("Cumulative hazards", "CDF (Bourgeouis-Pichat)"), col = c("blue", "red"),
-       lty = c(1, 2))
+legend("topleft", legend = c("Cumulative hazards", "CDF (Bourgeois-Pichat)"), col = c("blue", "red"),
+       lty = c(1, 2), cex = 0.7)
 ```
 
 As is evident from Figure \@ref(fig:pneo), the difference between the the two curves is
@@ -354,15 +354,16 @@ abline(h = 0, v = 0)
 
 -->
 
-The way to disentangle the endogenous and exogenous componets is to start with a plot 
-of the cumulative hazard function (Figure \@ref(fig:separ)).
+The way to disentangle the endogenous and exogenous components is to start with a plot 
+of the *cumulative* hazard function and add the exogenous 
+part from the postneonatal estimate, see Figure \@ref(fig:separ).
 
 ```{r separ, fig.cap = "Separation of exogenous and endogenous infant mortality (cumulative hazards, per cent).", fig.width = 5, fig.height = 4}
 plot(fitall, fn = "cum", col = "blue", main = "", xlab = "Age (days)", axes = FALSE,
      lwd = 1.5, ylab = "Cumulative hazards")
 
 axis(1, at = c(0, g(28), g(365)), labels = c(0, 28, 365), pos = 0)
-axis(2, las = 1, pos = 0, at = c(0, 0.02, 0.04, 0.06), labels = c(0, 2, 4, 6))
+axis(2, las = 1, pos = 0, at = c(0, 0.0096, 0.0338), labels = c(0, 0.96, 3.38))
 #box()
 abline(v = 0)
 texhaz <- g(365) * fitex$hazards[1, 1]
@@ -374,11 +375,16 @@ abline(v = g(365))
 text(100, 0.03, "Exogenous", col = "red", srt = 22, cex = 0.8)
 text(100, 0.053, "Endogenous plus exogenous", col = "blue", srt = 22, cex = 0.8)
 axis(3, at =  c(0, g(28), g(365)), labels = c(0, 28, 365))
+lines(c(0, g(28)), c(0.0096, 0.0096), lty = 3)
+lines(c(0, g(28)), c(0.0338, 0.0338), lty = 3)
+abline(v = g(28))
 ```
 
-So we can see from Figure \@ref(fig:separ) that of the total mortality, 
-`r round(5.27 / 7.63 * 100, 1)` per cent is exogenous and the rest is endogenous.
-AS always, this requires that we trust the Bourgeois-Pichat model.
+So we can see from Figure \@ref(fig:separ) (vertical axis on the right hand side) that of the total mortality, 
+`r round(5.27 / 7.63 * 100)` per cent is exogenous and the rest is endogenous.
+Similarly, of the neonatal mortality, `r round(0.96 / 3.38 * 100)` per cent is
+exogenous and the rest is endogenous (vertical axis on the left hand side).
+As always, this requires that we trust the Bourgeois-Pichat model.
 
 # Infant mortality, climate and weather
 
@@ -665,5 +671,5 @@ sensitivity for cold climate.
 
 # Conclusion
 
-Remains to be written. Feels like two papers, one about Bourgeouis-Pichat and one
+Remains to be written. Feels like two papers, one about Bourgeois-Pichat and one
 about climate and weather. Maybe discuss exogeneity/endogeneity?
