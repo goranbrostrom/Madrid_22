@@ -539,7 +539,7 @@ We start by performing separate analyses for neonatal and postneonatal mortality
 This is the simplest part, because *B-P* predicts that the baseline distribution (given the log-cube
 transformation) is *exponential*, that is, the hazard function is *constant*.
 
-```{r postanal, results='asis'}
+```{r postanalske, results='asis'}
 infdat$parity <- cut(infdat$parity, c(-2, 1.5, 4.5, 19), labels = c("1", "2-4", "5+"))
 infdat$period <- cut(infdat$birthdate, c(1895, 1914, 1935, 1951), dig.lab = 5)
 levels(infdat$subreg) <- c("ume", "ske")
@@ -552,24 +552,33 @@ pneo$exit <- g(pneo$exit * 365)
 ##
 pneo$emintemp <- round(pneo$emintemp)
 ##
-tpneo <- toTpch(Surv(enter, exit, event) ~ sex + socBranch + socStatus + illeg + parity + 
-                    period + cold
+tpneo <- toTpch(Surv(enter, exit, event) ~ period + sex + socBranch + socStatus + illeg + parity + 
+                    cold 
                 + emintemp + season + subreg, 
                 data = pneo, cuts = g(c(28, 365)))
 ##fit2 <- phreg(Surv(enter - g(28), exit - g(28), event) ~ sex + socBranch + socStatus + cold + emintemp, 
   ##           data = pneo, shape = 1)
 ##fit.pch <- pchreg(Surv(enter, exit, event) ~ sex + socBranch + socStatus + cold + emintemp, 
   ##           data = pneo, cuts = g(c(28, 365)))
-fit.tpch <- tpchreg(oe(event, exposure) ~ sex + socBranch + socStatus + illeg + parity +
-                        period + cold + emintemp + season + subreg, 
-                    data = tpneo, time = age)
+tpneo$icold <- with(tpneo, cold * (cold < 0))
+fit.tpch <- tpchreg(oe(event, exposure) ~ icold + emintemp + season +  period + sex + socBranch + socStatus  + parity, 
+                    data = tpneo[tpneo$subreg == "ske", ], time = age)
 dr <- drop1(fit.tpch, test = "Chisq")
-ltx(fit.tpch, dr = dr, caption = "Postneonatal mortality.", label = "tab:postanal")
+ltx(fit.tpch, dr = dr, caption = "Postneonatal mortality, Skellefteå.", label = "tab:postanalske")
 ```
 
 The result in Table \@ref(tab:postanal) shows that *climate* (`emintemp`) is more important than 
 *weather* (`cold`). Moreover, no signs of interaction between weather or climate and the rest of 
 covariates (not shown).
+
+```{r postanalume, results = 'asis'}
+fit.tpch <- tpchreg(oe(event, exposure) ~ icold + period + sex + socBranch + socStatus + period  + parity +
+                        season, 
+                    data = tpneo[tpneo$subreg == "ume", ], time = age)
+dr <- drop1(fit.tpch, test = "Chisq")
+ltx(fit.tpch, dr = dr, caption = "Postneonatal mortality, Umeå.", label = "tab:postanalume")
+```
+
 
 ## Neonatal mortality
 
