@@ -540,6 +540,7 @@ This is the simplest part, because *B-P* predicts that the baseline distribution
 transformation) is *exponential*, that is, the hazard function is *constant*.
 
 ```{r postanalske, results='asis'}
+source("R/ltx2.R")
 infdat$parity <- cut(infdat$parity, c(-2, 1.5, 4.5, 19), labels = c("1", "2-4", "5+"))
 infdat$period <- cut(infdat$birthdate, c(1895, 1914, 1935, 1951), dig.lab = 5)
 levels(infdat$subreg) <- c("ume", "ske")
@@ -560,23 +561,24 @@ tpneo <- toTpch(Surv(enter, exit, event) ~ period + sex + socBranch + socStatus 
   ##           data = pneo, shape = 1)
 ##fit.pch <- pchreg(Surv(enter, exit, event) ~ sex + socBranch + socStatus + cold + emintemp, 
   ##           data = pneo, cuts = g(c(28, 365)))
-tpneo$icold <- with(tpneo, cold * (cold < 0))
-fit.tpch <- tpchreg(oe(event, exposure) ~ icold + emintemp + season +  period + sex + socBranch + socStatus  + parity, 
+tpneo$excessCold <- with(tpneo, -cold * (cold < 0))
+fit.tpch <- tpchreg(oe(event, exposure) ~ excessCold + emintemp  +  period + sex + socBranch + socStatus  + 
+                        parity + season, 
                     data = tpneo[tpneo$subreg == "ske", ], time = age)
 dr <- drop1(fit.tpch, test = "Chisq")
-ltx(fit.tpch, dr = dr, caption = "Postneonatal mortality, Skellefteå.", label = "tab:postanalske")
+ltx2(fit.tpch, dr = dr, caption = "Postneonatal mortality, Skellefteå. Adjusted for social status and branch, illegitimacy, parity, time period, season, and sub region.", label = "tab:postanalske", keep = 2)
 ```
 
-The result in Table \@ref(tab:postanal) shows that *climate* (`emintemp`) is more important than 
+The result in Table \@ref(tab:postanalske) shows that *climate* (`emintemp`) is more important than 
 *weather* (`cold`). Moreover, no signs of interaction between weather or climate and the rest of 
 covariates (not shown).
 
 ```{r postanalume, results = 'asis'}
-fit.tpch <- tpchreg(oe(event, exposure) ~ icold + period + sex + socBranch + socStatus + period  + parity +
-                        season, 
+fit.tpch <- tpchreg(oe(event, exposure) ~ excessCold + emintemp + period + sex + socBranch + socStatus + 
+                        parity + season, 
                     data = tpneo[tpneo$subreg == "ume", ], time = age)
 dr <- drop1(fit.tpch, test = "Chisq")
-ltx(fit.tpch, dr = dr, caption = "Postneonatal mortality, Umeå.", label = "tab:postanalume")
+ltx2(fit.tpch, dr = dr, caption = "Postneonatal mortality, Umeå. Adjusted for social status and branch, illegitimacy, parity, time period, season, and subregion.", label = "tab:postanalume", keep = 2)
 ```
 
 
@@ -592,10 +594,10 @@ Maybe surprising. So we run separate analyses for the sexes.
 neo <- age.window(infdat, c(0, 28 /365))
 neo$exit <- g(neo$exit * 365)
 neo$enter <- g(neo$enter * 365)
-fit.ph <- coxreg(Surv(enter, exit, event) ~  socStatus + illeg + parity + period + socBranch  + cold + emintemp + subreg,
+fit.ph <- coxreg(Surv(enter, exit, event) ~  cold + emintemp + socStatus + illeg + parity + period + socBranch + subreg,
                  data = neo[neo$sex == "girl", ])
 dr <- drop1(fit.ph, test = "Chisq")
-ltx(fit.ph, dr = dr, caption = "Neonatal mortality, girls.", label = "tab:neonatal")
+ltx2(fit.ph, dr = dr, caption = "Neonatal mortality, girls. Adjusted for social status and branch, illegitimacy, parity, time period, and sub region.", label = "tab:neonatal", keep = 2)
 ```
 
 Same here, *climate* is more important than *weather*.
@@ -603,10 +605,10 @@ Same here, *climate* is more important than *weather*.
 ### Boys
 
 ```{r neoanalboys, results = 'asis'}
-fit.ph <- coxreg(Surv(enter, exit, event) ~  socStatus + illeg + parity + period + socBranch  + cold + emintemp + subreg,
+fit.ph <- coxreg(Surv(enter, exit, event) ~  cold + emintemp + socStatus + illeg + parity + period + socBranch + subreg,
                  data = neo[neo$sex == "boy", ])
 dr <- drop1(fit.ph, test = "Chisq")
-ltx(fit.ph, dr = dr, caption = "Neonatal mortality, boys.", label = "tab:neonatalboys")
+ltx2(fit.ph, dr = dr, caption = "Neonatal mortality, boys. Adjusted for social status and branch, illegitimacy, parity, time period, and sub region.", label = "tab:neonatalboys", keep = 2)
 ```
 
 Here, however, boys are sensitive to temperatures below average, in addition to the 
@@ -636,11 +638,12 @@ tpneo <- toTpch(Surv(enter, exit, event) ~ sex + socBranch + socStatus + illeg +
   ##           data = pneo, shape = 1)
 ##fit.pch <- pchreg(Surv(enter, exit, event) ~ sex + socBranch + socStatus + cold + emintemp, 
   ##           data = pneo, cuts = g(c(28, 365)))
-fit.tpch <- tpchreg(oe(event, exposure) ~ sex + socBranch + socStatus + illeg + parity + period + 
-                        cold + emintemp + subreg, 
+fit.tpch <- tpchreg(oe(event, exposure) ~ cold + emintemp + sex + socBranch + socStatus + illeg + parity + period + 
+                        subreg, 
                     data = tpneo, time = age)
 dr <- drop1(fit.tpch, test = "Chisq")
-ltx(fit.tpch, dr = dr, caption = "Postneonatal mortality, winter and spring.", label = "tab:postanalw")
+ltx2(fit.tpch, dr = dr, caption = "Postneonatal mortality, winter and spring. Adjusted for social status and branch, illegitimacy, parity, time period, and sub region.", 
+     label = "tab:postanalw", keep = 2)
 ```
 
 The result in Table \@ref(tab:postanalw) shows that *climate* (`emintemp`) is more important than 
@@ -658,10 +661,10 @@ Maybe surprising. So we run separate analyses for the sexes.
 neo <- age.window(infdat[infdat$season %in% c("winter", "spring"), ], c(0, 28 /365))
 neo$exit <- g(neo$exit * 365)
 neo$enter <- g(neo$enter * 365)
-fit.ph <- coxreg(Surv(enter, exit, event) ~  socStatus + illeg + parity + period + socBranch  + cold + emintemp + subreg,
+fit.ph <- coxreg(Surv(enter, exit, event) ~  cold + emintemp + socStatus + illeg + parity + period + socBranch + subreg,
                  data = neo[neo$sex == "girl", ])
 dr <- drop1(fit.ph, test = "Chisq")
-ltx(fit.ph, dr = dr, caption = "Neonatal mortality winter and spring, girls.", label = "tab:neonatalw")
+ltx2(fit.ph, dr = dr, caption = "Neonatal mortality winter and spring, girls. Adjusted for social status and branch, illegitimacy, parity, time period, and sub region.", label = "tab:neonatalw", keep = 2)
 ```
 
 Same here, *climate* is more important than *weather*.
@@ -669,10 +672,11 @@ Same here, *climate* is more important than *weather*.
 ### Boys
 
 ```{r neoanalboysw, results = 'asis'}
-fit.ph <- coxreg(Surv(enter, exit, event) ~  socStatus + illeg + parity + period + socBranch  + cold + emintemp + subreg,
+fit.ph <- coxreg(Surv(enter, exit, event) ~  cold + emintemp + socStatus + illeg + parity + period + socBranch + subreg,
                  data = neo[neo$sex == "boy", ])
 dr <- drop1(fit.ph, test = "Chisq")
-ltx(fit.ph, dr = dr, caption = "Neonatal mortality winter and spring, boys.", label = "tab:neonatalboysw")
+ltx2(fit.ph, dr = dr, caption = "Neonatal mortality winter and spring, boys. Adjusted for social status and branch, illegitimacy, parity, time period, and sub region.", 
+     label = "tab:neonatalboysw", keep = 2)
 ```
 
 Here, however, boys are sensitive to temperatures below average, in addition to the 
