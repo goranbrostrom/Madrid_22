@@ -1,0 +1,58 @@
+---
+title: "Time series"
+author: "Göran Broström"
+date: "`Sys.time()`"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Temperature
+
+## Umeå
+
+```{r readdataume}
+umetemp <- readRDS("data/umetemp.rds")
+sketemp <- readRDS("data/bjurtemp.rds")
+stentemp <- readRDS("data/stentemp.rds")
+par(cex = 0.8)
+for (yr in 1894:1951){
+    with(umetemp[umetemp$year == yr, ], plot(week, aver, 
+                                               type = "b", col = "blue",
+                                               main = yr,
+                                               xlab = "Week", lwd = 1.5,
+                                               ylim = c(-15, 15), axes = FALSE))
+    axis(1, at = c(1, seq(4,52, by = 4)))
+    axis(2)
+    box()
+    ##with(umetemp[umetemp$year == yr, ], lines(week, emeantemp, type = "l"))
+    abline (h = 0)
+    abline(h = c(-5, -10, -15), v = c(1, seq(4, 52, by = 4)), lty = 3)
+    with(sketemp[sketemp$year == yr, ], lines(week, aver, type = "b", col = "red"))
+    with(stentemp[stentemp$year == yr, ], lines(week, aver, type = "b", col = "black"))
+    legend("topright", legend = c("Umeå", "Bjuröklubb", "Stensele"), col = c("blue", "red", "black"),
+           lty = 1, pch = "o", cex = 1)
+}
+```
+
+
+# Deaths
+
+## Umeå
+
+```{r deathsume}
+infdat <- readRDS("data/infdat3_year3.rds")
+umeinf <- infdat[infdat$subreg == "ume", ]
+```
+
+## Skellefteå
+
+```{r deathsske}
+skeinf <- infdat[infdat$subreg == "bjur", ]
+```
+
+
