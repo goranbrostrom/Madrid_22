@@ -5,5 +5,5 @@ Infant mortality, climate and weather
 
 # Paper for presentation in Madrid, March 2022
 
-The file *paper.pdf* is the result of this project. Note the time stamp
+The file *paper3.pdf* is the result of this project. Note the time stamp
 on the front page, the report is updated regularly for some time.

@@ -28,16 +28,17 @@ header-includes:
 - \usepackage[utf8]{inputenc}
 - \usepackage{graphicx}
 - \usepackage{a4wide}
-- \usepackage[figuresonly]{endfloat}
-- \renewcommand{\efloatseparator}{\mbox{}}
+#- \usepackage[figuresonly]{endfloat}
+#- \renewcommand{\efloatseparator}{\mbox{}}
 abstract: "The effect of extreme temperatures on infant mortality in the Umeå region 1895-1950 is studied in a biometric analysis setting. More precisely, the effect of climate and weather, measured by temperature, on infant mortality is investigated. It turns out that climate is more important than weather, low average temperatures are more important than temporary dips in temperature. The investigated geographical region is situated too far north for bad effects of high temperatures to show."
 ---
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, fig.path='figs/',fig.height=3,comment=NA)
+knitr::opts_chunk$set(echo = FALSE, fig.path='figs/',fig.height=3, comment=NA, global.par=TRUE)
 library(knitr)
 library(eha)
+par(las = 1, cex.axis = 0.7, cex.lab = 0.7)
 g <- function(x) (log(1 + x))^3 # x in days.
 dg <- function(x) (3 * (log(1 + x))^2) / (1 + x)
 ginv <- function(y) exp(y^(1/3)) - 1
@@ -99,10 +100,11 @@ Figures.
 
 Figure \@ref(fig:mortstat) shows the average monthly crude infant mortality, and a clear seasonal pattern is visible.
 
-```{r mortstat, fig.cap = "Crude infant mortality by week of year, Umeå/Skellefteå 1895--1950.", fig.height = 4}
+```{r mortstat, fig.cap = "Crude infant mortality by week of year, Umeå/Skellefteå 1895--1950.", fig.height = 3}
 infdat <- readRDS("data/infdat3_year3.rds")
 tid <- toTpch(Surv(enter, exit, event) ~ week, data = infdat, cuts = c(0, 1))
 y <- tid$event / tid$exposure
+par(las = 1, cex.axis = 0.7, cex.lab = 0.7)
 plot(1:52, y, type = "b", col = "blue", axes = FALSE, ylim = c(0, max(y)),
      xlab = "Week", ylab = "IMR", cex = 0.7, lwd = 1.5)
 axis(1, at = c(1, 10, 20, 30, 40, 52))
@@ -114,10 +116,12 @@ box()
 
 The average monthly neonatal mortality is shown in Figure \@ref(fig:neodata).
 
-```{r neodata, fig.cap = "Crude neonatal mortality by week of year, Umeå/Skellefteå 1895--1950.", fig.height = 4}
+```{r neodata, fig.cap = "Crude neonatal mortality by week of year, Umeå/Skellefteå 1895--1950.", fig.height = 3}
 neo <- age.window(infdat, c(0, 28 / 365))
 tneo <- toTpch(Surv(enter, exit, event) ~ week, data = neo, cuts = c(0, 28 / 365))
 y <- tneo$event / tneo$exposure
+par(cex.axis = 0.7)
+par(las = 1, cex.axis = 0.7, cex.lab = 0.7)
 plot(1:52, y, type = "b", col = "blue", axes = FALSE, ylim = c(0, max(y)),
      xlab = "Week", ylab = "NMR", cex = 0.7, lwd = 1.5)
 axis(1, at = c(1, 10, 20, 30, 40, 52))
@@ -131,10 +135,11 @@ The seasonal pattern is similar to the one we found above for infant mortality.
 
 The average monthly postneonatal mortality is shown in Figure \@ref(fig:pneodata).
 
-```{r pneodata, fig.cap = "Crude postneonatal mortality by week of year, Umeå/Skellefteå 1895--1950.", fig.height = 4}
+```{r pneodata, fig.cap = "Crude postneonatal mortality by week of year, Umeå/Skellefteå 1895--1950.", fig.height = 3}
 pneo <- age.window(infdat, c(28 / 365, 1))
 tpneo <- toTpch(Surv(enter, exit, event) ~ week, data = pneo, cuts = c(28 / 365, 1))
 y <- tpneo$event / tpneo$exposure
+par(las = 1, cex.axis = 0.7, cex.lab = 0.7)
 plot(1:52, y, type = "b", col = "blue", axes = FALSE, ylim = c(0, max(y)),
      xlab = "Week", ylab = "PNMR", cex = 0.7, lwd = 1.5)
 axis(1, at = c(1, 10, 20, 30, 40, 52))
@@ -147,10 +152,11 @@ box()
 The seasonal pattern is once again similar to the one we found for infant mortality.
 Next, the decline over the years in Figures \@ref(fig:longtrend) and \@ref(fig:ntrend).
 
-```{r longtrend, fig.cap = "Crude IMR by year, Umeå-Skellefteå 1895--1950.", fig.height = 4}
+```{r longtrend, fig.cap = "Crude IMR by year, Umeå-Skellefteå 1895--1950.", fig.height = 3}
 trend <- toTpch(Surv(enter, exit, event) ~ year, data = infdat, cuts = c(0, 1))
 y <- trend$event / trend$exposure
 par(las = 1)
+par(las = 1, cex.axis = 0.7, cex.lab = 0.7)
 plot(1895:1951, y, type = "b", col = "blue", ylim = c(0, max(y)), xlab = "Year",
      ylab = "IMR", lwd = 1.5, cex = 0.7)
 abline(h = c(0.05, 0.1, 0.15), lty = 3)
@@ -163,6 +169,7 @@ ndat <- age.window(infdat, c(0, 28 / 365))
 tnda <- toTpch(Surv(enter, exit, event) ~ year, data = ndat, cuts = c(0, 28 / 365))
 y <- tnda$event / tnda$exposure
 par(las = 1)
+par(las = 1, cex.axis = 0.7, cex.lab = 0.7)
 plot(1895:1951, y, type = "b", col = "blue", ylim = c(0, max(y)), xlab = "Year",
      ylab = "NMR", lwd = 1.5, cex = 0.7)
 abline(h = 0)
@@ -199,79 +206,116 @@ sh <- umetemp[umetemp$year == 1923 & umetemp$week == 1, ]
 tbl(round(sh[, 1:8], 2), caption = "Weekly summarized temperature data: Umeå 1923, first week.", fs = 9)
 ```
 
+Weekly averages (`mintemp`, `maxtemp`, `meantemp`)  are calculated by week and year, and deviations from 
+the averages (`emintemp`, `emaxtemp`, `emeantemp`) of the weekly averages are used as time-varying *communal covariates*. 
+As an example, see Figure \@ref(fig:firstweek), where the variation around the average
+minimum temperature (`emintemp`) week 1 is shown. 
 
+```{r firstweek, fig.cap = "Minimum temperature the first week of each year.", fig.height = 3}
+w1 <- umetemp[umetemp$week == 1, ]
+emintemp <- w1$emintemp[1]
+mintemp <- w1$mintemp
+par(las = 1, cex.axis = 0.7, cex.lab = 0.7)
+plot(w1$year, mintemp, type = "b", lty = 2, col = "blue", xlab = "Year", ylab = "Temperature", 
+     axes = FALSE, ylim = c(-35, 0), cex = 0.7)
+axis(1, at = c(1894, 1903, 1913, 1923, 1932, 1942, 1951))
+whh <- c(-30, -25, emintemp, -10, 0) 
+axis(2, at = whh, labels = round(whh))
+abline(h = emintemp, lwd = 1.5, col = "blue")
+abline (h = 0)
+abline(v = 1923, lty = 3)
+box()
+```
 
-Weekly averages are calculated year by year, and deviations from 
-the averages of the weekly averages are used as a time-varying *communal covariate*. See Figure 
-\@ref(fig:monavgtemp) for the monthly distributions.
+Curiously, our randomly selected year 1923 turns out contain the warmest first week of all years, see 
+Figure \@ref(fig:firstweek). 
 
-```{r monavgtemp, fig.cap="Weekly max and min temperature averages, 1895--1950.", fig.height = 4}
+Figure 
+\@ref(fig:monavgtemp) shows the average monthly distribution over all years. The subregional patterns 
+and levels are very similar.
+
+```{r monavgtemp, fig.cap="Weekly max and min temperature averages, 1895--1950.", fig.height = 3}
 oldpar <- par(mfrow = c(1, 2))
 ## Umeå:
 umaxavg <- umetemp$emaxtemp[1:52]
 uminavg <- umetemp$emintemp[1:52]
+par(las = 1, cex.axis = 0.7, cex.lab = 0.7)
 plot(1:52, umaxavg, ylim = c(-20, 30), type = "b", col = "red", axes = FALSE,
      xlab = "Week", ylab = "Temperature (C)", cex = 0.6, lwd = 0.7)
-text(17, 27, "Umeå")
+text(17, 27, "Umeå", cex = 0.7)
 axis(1, at = c(1, 10, 29, 43, 52))
 axis(2, las = 1)
 abline(h = 0)
 abline(v = 29, lty = 3)
 abline(h = c(-20, -10, 10, 20), lty = 3)
 lines(1:52, uminavg, type = "b", col = "blue", cex = 0.6, lwd = 0.7)
-text(8, 11, "max", col = "red")
-text(20, -9, "min", col = "blue")
+text(8, 11, "max", col = "red", cex = 0.7)
+text(20, -9, "min", col = "blue", cex = 0.7)
 box()
 ## Skellefteå:
 bmaxavg <- bjurtemp$emaxtemp[1:52]
 bminavg <- bjurtemp$emintemp[1:52]
 plot(1:52, bmaxavg, ylim = c(-20, 30), type = "b", col = "red", axes = FALSE,
      xlab = "Week", ylab = "Temperature (C)", cex = 0.6, lwd = 0.7)
-text(17, 27, "Skellefteå")
+text(17, 27, "Skellefteå", cex = 0.7)
 axis(1, at = c(1, 10, 29, 43, 52))
 axis(2, las = 1)
 abline(h = 0)
 abline(v = 29, lty = 3)
 abline(h = c(-20, -10, 10, 20), lty = 3)
 lines(1:52, bminavg, type = "b", col = "blue", cex = 0.6, lwd = 0.7)
-text(8, 11, "max", col = "red")
-text(20, -9, "min", col = "blue")
+text(8, 11, "max", col = "red", cex = 0.7)
+text(20, -9, "min", col = "blue", cex = 0.7)
 box()
 ##
 par(oldpar)
 ```
 
-Time trends of yearly average temperatures, see Figure 
+Time trends of yearly average temperatures, see Figure \@ref(fig:longterm).
 
-```{r longterm}
+```{r longterm, fig.cap = "Yearly average temperatures, Umeå and Skellefteå."}
 bmtemp <- rbind(umetemp, bjurtemp)
 umt <- with(bmtemp, tapply(meantemp, year, mean))
+par(las = 1)
+par(las = 1, cex.axis = 0.7, cex.lab = 0.7)
 plot(1894:1951, umt, type = "b", col = "blue", xlab = "Year",
      ylab = "Mean temperature", lwd = 1.5, cex = 0.7, ylim = c(0, 7))
 abline(h = 0)
 abline(h = 1:6, lty = 3)
 ```
 
-## Mortality and temperature as a communal covariate
+## Temperature as communal covariates
 
-The two data sets, mortality and weather, are combined ino one by treating temperature data 
-as a communal covariate and incorporate it as such in the mortality data set.
+The two data sets, mortality and weather, are combined into one by treating temperature data 
+as a communal covariate and incorporate it as such in the mortality data set. The 
+function *make.communal* in the **R** [@cran] package *eha* [@eha; @ehar2] is used 
+for that purpose. 
+
+```{r readdata3}
+levels(infdat$subreg) <- c("ume", "ske")
+##infdat$excessTemp <- cut(infdat$aver, c(-16, -2, 2, 9), include.lowest = TRUE) # NOTE!!!
+##infdat$excessTemp <- relevel(infdat$excessTemp, ref = "(-2,2]")
+infdat$excessTemp <- infdat$cold # CHECK THIS!!
+tbl(head(infdat))
+```
+
 
 
 # Statistical modelling
 
-The analyses are performed on the log-cube scale with proportional hazards modelling. Note that
+The analyses are performed on the *log-cube* scale, following the hints of  
+Bourgeois-Pichat [@bp51a; @bp51b], with proportional hazards modelling. Note that
 the property of proportional hazards are preserved under a strictly monotone increasing time transform.
 However, the estimates of baseline distribution characteristics will change, of course.
 
-We start by performing separate analyses for neonatal and postneonatal mortality. Then we make comparisons.
+We start by performing separate analyses for neonatal and postneonatal mortality. 
 
 # Postneonatal mortality
 
 This is the simplest part, because *B-P* predicts that the baseline distribution (given the log-cube
 transformation) is *exponential*, that is, the hazard function is *constant*.
 
-```{r postanalske, results='asis'}
+```{r postanal, results='asis'}
 source("R/ltx2.R")
 infdat$parity <- cut(infdat$parity, c(-2, 1.5, 4.5, 19), labels = c("1", "2-4", "5+"))
 infdat$period <- cut(infdat$birthdate, c(1895, 1914, 1935, 1951), dig.lab = 5)
@@ -286,32 +330,25 @@ pneo$exit <- g(pneo$exit * 365)
 pneo$emintemp <- round(pneo$emintemp)
 ##
 tpneo <- toTpch(Surv(enter, exit, event) ~ period + sex + socBranch + socStatus + illeg + parity + 
-                    cold 
+                    excessTemp
                 + emintemp + season + subreg, 
                 data = pneo, cuts = g(c(28, 365)))
 ##fit2 <- phreg(Surv(enter - g(28), exit - g(28), event) ~ sex + socBranch + socStatus + cold + emintemp, 
   ##           data = pneo, shape = 1)
 ##fit.pch <- pchreg(Surv(enter, exit, event) ~ sex + socBranch + socStatus + cold + emintemp, 
   ##           data = pneo, cuts = g(c(28, 365)))
-tpneo$excessCold <- with(tpneo, -cold * (cold < 0))
-fit.tpch <- tpchreg(oe(event, exposure) ~ excessCold + emintemp  +  period + sex + socBranch + socStatus  + 
-                        parity + season, 
-                    data = tpneo[tpneo$subreg == "ske", ], time = age)
+
+fit.tpch <- tpchreg(oe(event, exposure) ~ excessTemp + emintemp +  period + sex + socBranch + socStatus  + 
+                        illeg + parity, 
+                    data = tpneo, time = age)
 dr <- drop1(fit.tpch, test = "Chisq")
-ltx2(fit.tpch, dr = dr, caption = "Postneonatal mortality, Skellefteå. Adjusted for social status and branch, illegitimacy, parity, time period, season, and sub region.", label = "tab:postanalske", keep = 2)
+ltx2(fit.tpch, dr = dr, caption = "Postneonatal mortality. Adjusted for social status and branch, illegitimacy, parity, time period, season, and subregion.", label = "tab:postanalske", keep = 2)
 ```
 
-The result in Table \@ref(tab:postanalske) shows that *climate* (`emintemp`) is more important than 
-*weather* (`cold`). Moreover, no signs of interaction between weather or climate and the rest of 
+The result in Table \@ref(tab:postanal) shows that *climate* (`emintemp`) is more important than 
+*weather* (`excessTemp`). Moreover, no signs of interaction between weather or climate and the rest of 
 covariates (not shown).
 
-```{r postanalume, results = 'asis'}
-fit.tpch <- tpchreg(oe(event, exposure) ~ excessCold + emintemp + period + sex + socBranch + socStatus + 
-                        parity + season, 
-                    data = tpneo[tpneo$subreg == "ume", ], time = age)
-dr <- drop1(fit.tpch, test = "Chisq")
-ltx2(fit.tpch, dr = dr, caption = "Postneonatal mortality, Umeå. Adjusted for social status and branch, illegitimacy, parity, time period, season, and subregion.", label = "tab:postanalume", keep = 2)
-```
 
 
 # Neonatal mortality
@@ -326,10 +363,10 @@ Maybe surprising. So we run separate analyses for the sexes.
 neo <- age.window(infdat, c(0, 28 /365))
 neo$exit <- g(neo$exit * 365)
 neo$enter <- g(neo$enter * 365)
-fit.ph <- coxreg(Surv(enter, exit, event) ~  cold + emintemp + socStatus + illeg + parity + period + socBranch + subreg,
-                 data = neo[neo$sex == "girl", ])
+fit.ph <- coxreg(Surv(enter, exit, event) ~  (excessTemp + emintemp) * sex + socStatus + illeg + parity + period + socBranch + subreg,
+                 data = neo)
 dr <- drop1(fit.ph, test = "Chisq")
-ltx2(fit.ph, dr = dr, caption = "Neonatal mortality, girls. Adjusted for social status and branch, illegitimacy, parity, time period, and sub region.", label = "tab:neonatal", keep = 2)
+ltx2(fit.ph, dr = dr, caption = "Neonatal mortality. Adjusted for social status and branch, illegitimacy, parity, time period, and sub region.", label = "tab:neonatal", keep = 2)
 ```
 
 Same here, *climate* is more important than *weather*.
@@ -337,8 +374,8 @@ Same here, *climate* is more important than *weather*.
 ## Boys
 
 ```{r neoanalboys, results = 'asis'}
-fit.ph <- coxreg(Surv(enter, exit, event) ~  cold + emintemp + socStatus + illeg + parity + period + socBranch + subreg,
-                 data = neo[neo$sex == "boy", ])
+fit.ph <- coxreg(Surv(enter, exit, event) ~  excessTemp + emintemp + socStatus + illeg + parity + period + socBranch + subreg,
+                 data = neo[neo$sex == "boy" & neo$season %in% c("spring", "summer"), ])
 dr <- drop1(fit.ph, test = "Chisq")
 ltx2(fit.ph, dr = dr, caption = "Neonatal mortality, boys. Adjusted for social status and branch, illegitimacy, parity, time period, and sub region.", label = "tab:neonatalboys", keep = 2)
 ```
@@ -363,14 +400,14 @@ pneo$exit <- g(pneo$exit * 365)
 ##
 pneo$emintemp <- round(pneo$emintemp)
 ##
-tpneo <- toTpch(Surv(enter, exit, event) ~ sex + socBranch + socStatus + illeg + parity + 
-                    cold + emintemp + period + subreg, 
+tpneo <- toTpch(Surv(enter, exit, event) ~ excessTemp + emintemp + sex + socBranch + socStatus + illeg + parity + 
+                    period + subreg, 
                 data = pneo, cuts = g(c(28, 365)))
 ##fit2 <- phreg(Surv(enter - g(28), exit - g(28), event) ~ sex + socBranch + socStatus + cold + emintemp, 
   ##           data = pneo, shape = 1)
 ##fit.pch <- pchreg(Surv(enter, exit, event) ~ sex + socBranch + socStatus + cold + emintemp, 
   ##           data = pneo, cuts = g(c(28, 365)))
-fit.tpch <- tpchreg(oe(event, exposure) ~ cold + emintemp + sex + socBranch + socStatus + illeg + parity + period + 
+fit.tpch <- tpchreg(oe(event, exposure) ~ excessTemp + emintemp + sex + socBranch + socStatus + illeg + parity + period + 
                         subreg, 
                     data = tpneo, time = age)
 dr <- drop1(fit.tpch, test = "Chisq")
@@ -393,8 +430,8 @@ Maybe surprising. So we run separate analyses for the sexes.
 neo <- age.window(infdat[infdat$season %in% c("winter", "spring"), ], c(0, 28 /365))
 neo$exit <- g(neo$exit * 365)
 neo$enter <- g(neo$enter * 365)
-fit.ph <- coxreg(Surv(enter, exit, event) ~  cold + emintemp + socStatus + illeg + parity + period + socBranch + subreg,
-                 data = neo[neo$sex == "girl", ])
+fit.ph <- coxreg(Surv(enter, exit, event) ~  excessTemp + emintemp + socStatus + illeg + parity + period + socBranch + subreg,
+                 data = neo[neo$sex == "girl" & neo$emeantemp < -0, ])
 dr <- drop1(fit.ph, test = "Chisq")
 ltx2(fit.ph, dr = dr, caption = "Neonatal mortality winter and spring, girls. Adjusted for social status and branch, illegitimacy, parity, time period, and sub region.", label = "tab:neonatalw", keep = 2)
 ```
@@ -404,8 +441,8 @@ Same here, *climate* is more important than *weather*.
 ## Boys
 
 ```{r neoanalboysw, results = 'asis'}
-fit.ph <- coxreg(Surv(enter, exit, event) ~  cold + emintemp + socStatus + illeg + parity + period + socBranch + subreg,
-                 data = neo[neo$sex == "boy", ])
+fit.ph <- coxreg(Surv(enter, exit, event) ~  excessTemp + emintemp + socStatus + illeg + parity + period + socBranch + subreg,
+                 data = neo[neo$sex == "boy" & neo$season %in% c("winter", "spring"), ])
 dr <- drop1(fit.ph, test = "Chisq")
 ltx2(fit.ph, dr = dr, caption = "Neonatal mortality winter and spring, boys. Adjusted for social status and branch, illegitimacy, parity, time period, and sub region.", 
      label = "tab:neonatalboysw", keep = 2)

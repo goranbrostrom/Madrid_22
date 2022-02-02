@@ -178,9 +178,11 @@ temp_ivl <- c(temp_start, temp_end)
 ##
 umetemp <- tempdat("ume", temp_ivl)
 bjurtemp <- tempdat("bjur", temp_ivl)
+stentemp <- tempdat("sten", temp_ivl) # Added 27 Jan 2022
 ##stentemp <- tempdat("~/Forskning/Data/sten_temp.csv", c(1899, 1952))
 saveRDS(umetemp, file = "data/umetemp.rds")
 saveRDS(bjurtemp, file = "data/bjurtemp.rds")
+saveRDS(stentemp, file = "data/stentemp.rds")  ## Added 27 Jan2022
 ```
 
 # Make communal
