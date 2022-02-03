@@ -330,16 +330,31 @@ infdat$emeantemp <- round(infdat$emeantemp)
 levels(infdat$socBranch) <- c("office", "farming", "office", "worker", "worker") # NOTE!
 ```
 
+# Results
 
-# Neonatal mortality
+The results regarding neonatal mortality is much in accordance with the results
+found by @junkka. However, they used temperature in a "hockey-stick" regression with a breakpoint at
+14.5 degrees Celsius and a negative slope (decreasing risk) to the left and a positive slope
+(increasing risk) to the right. Instead, we are using the average weekly temperature
+for the 52 weeks of a year, for each week averaging over all the years in the study, as
+our "reference points" ("climate"), adding deviances up and down ("weather") as
+"short-term temperature stress". This is similar to the way prices and mortality were related
+in for instance @genus11, that is, a time series split into long time trend and short
+term variation.
+
+In accordance with the results of @bp51a and @bp51b, we separate the investigation into 
+two parts, *neonatal* and *postneonatal* mortality.
+
+
+## Neonatal mortality
 
 ```{r introneo}
 neo <- age.window(infdat, c(0, 28/ 365))
 ```
 
-The analysis is split into two parts by season, *winter + spring* is one, and *summer + fall* the other.
+The analyses are split into two parts by season, *winter + spring* is one, and *summer + fall* the other.
 
-## Winter and Spring
+### Winter and Spring
 
 This period refers to the months *December to May*. A Cox regression involves as
 interesting variables *highTemp*, an indicator of temperature at least four degrees
@@ -361,7 +376,7 @@ ltx2(fit.cr, dr = dr, caption = "Neonatal mortality, winter and spring. Adjusted
      label = "tab:neoanalw", keep = NULL)
 ```
 
-## Summer and Fall
+### Summer and Fall
 
 This period refers to the months *April to October*. A Cox regression involves as
 interesting variables *highTemp*, an indicator of temperature at least four degrees
@@ -384,34 +399,87 @@ ltx2(fit.cr, dr = dr, caption = "Neonatal mortality, summer and fall. Adjusted f
 ```
 
 
-# Postneonatal mortality
+## Postneonatal mortality
 
 This is the simplest part, because @bp51a predicts that the baseline distribution (given the log-cube
 transformation **g**) is *exponential*, that is, the hazard function is *constant*.
 To give substance to this claim, a short introduction to the ideas of Bourgeois-Pichat is
 given.
 
-## Bourgeois-Pichat and the log-cube transform
+### Bourgeois-Pichat and the log-cube transform
 
-**FILL IN ...**
+The *log-cube transform g*, suggested by @bp51a, is defined as
 
-```{r getpneo}
-pneo <- age.window(infdat, c(28 / 365, 1))
-pneo$enter <- g(pneo$enter * 365)
-pneo$exit <- g(pneo$exit * 365)
+\begin{equation}
+g(t) = \log^3(1 + t), \quad 0 \le t \le 365,
+\end{equation}
+
+where $t$ is age in days. A graph of the transform is shown in Figure \@ref(fig:gplot).
+
+```{r gplot, fig.cap = "The g transform.",fig.height=3.2}
+x <- seq(0, 365, length = 1000)
+y <- g(x)
+plot(x, y, type = "l", ylab = "g(t)", xlab = "t (days)", col = "blue", axes = FALSE)
+abline(h = 0, v = 0)
 ##
-tpneo <- toTpch(Surv(enter, exit, event) ~ period + sex + socBranch + socStatus + illeg + parity + 
-                    lowTemp + highTemp + season + aver
-                + emeantemp + subreg, 
-                data = pneo, cuts = g(c(28, 365)))
+lines(c(28, 28), c(0, g(28)), lty = 3)
+lines(c(0, 28), c(g(28), g(28)), lty = 3)
+##
+lines(c(183, 183), c(0, g(183)), lty = 3)
+lines(c(0, 183), c(g(183), g(183)), lty = 3)
+##
+lines(c(365, 365), c(0, g(365)), lty = 3)
+lines(c(0, 365), c(g(365), g(365)), lty = 3)
+##
+axis(1, at = c(0, 28, 183, 365))
+ycor <-  c(0, g(28), g(183), g(365))
+axis(2, at = ycor, labels = round(ycor), las = 1)
+box()
 ```
 
 
-## Winter and Spring
+It was used as a tool for dividing infant mortality 
+into *endogenous* and *exogenous* causes, and a an important part in that venue was
+the observations (i) postneonatal mortality is purely exogenous, and (ii) the distribution 
+of exogenous mortality is *truncated uniform* (right truncated at $t = g(365)$) on the
+$g$-transformed time scale.
+
+Today, assumption (ii) is slightly outdated, for three reasons: (a) The uniform distribution
+is not a very practical tool in survival analysis, (b) replacing the uniform with an
+*exponential* not only fits better (usually), it also is a survival distribution that
+is extremely easy to work with in survival analysis, and (c) "all models are wrong, but some are useful [@box76]".
+
+```{r getpneo}
+pneo <- age.window(infdat, c(28 / 365, 1))
+gpneo <- pneo
+gpneo$enter <- g(gpneo$enter * 365)
+gpneo$exit <- g(gpneo$exit * 365)
+##
+gtpneo <- toTpch(Surv(enter, exit, event) ~ period + sex + socBranch + socStatus + illeg + parity + 
+                    lowTemp + highTemp + season + aver
+                + emeantemp + subreg, 
+                data = gpneo, cuts = g(c(28, 365)))
+```
+
+For now, let us look at the basic distribution of postneonatal life on the $g$ time
+scale. We do it nonparametrically by calculating the *Nelson-Aalen* estimator of the
+cumulative hazards function. See Figure \@ref(fig:nap), where the two curves are indistinguishable.
+
+```{r nap, fig.cap = "Nelson-Aalen estimator and exponential cumulative hazards of postneonatal survival on the g scale.",fig.height=3.2}
+fit <- coxreg(Surv(enter, exit, event) ~ 1, data = gpneo)
+plot(fit, xlam = "g(t)")
+fit.w <- tpchreg(oe(event, exposure) ~ 1, data = gtpneo, time = age)
+zz <- hazards(fit.w)
+lines(zz$x, zz$y, col = "red", lty = 2)
+legend("topleft", legend = c("Nelson-Aalen", "Exponential"), lty = 1:2, col = c("blue", "red"))
+```
+
+
+### Winter and Spring
 
 
 ```{r postanalw, results='asis'}
-winter <- tpneo[tpneo$season %in% c("winter", "spring"), ]
+winter <- gtpneo[gtpneo$season %in% c("winter", "spring"), ]
 winter$season <- factor(winter$season)
 
 fit.tpch <- tpchreg(oe(event, exposure) ~ lowTemp + highTemp + aver + emeantemp + sex + socBranch + socStatus  + 
@@ -426,11 +494,11 @@ The result in Table \@ref(tab:postanalw) shows that *climate* (`emintemp`) is mo
 covariates (not shown).
 
 
-## Summer and Fall
+### Summer and Fall
 
 
 ```{r postanals, results='asis'}
-summer <- tpneo[tpneo$season %in% c("summer", "fall"), ]
+summer <- gtpneo[gtpneo$season %in% c("summer", "fall"), ]
 winter$season <- factor(winter$season)
 
 fit.tpch <- tpchreg(oe(event, exposure) ~ lowTemp + highTemp + aver + emeantemp + sex + socBranch + socStatus  + 
@@ -444,6 +512,10 @@ The result in Table \@ref(tab:postanals) shows that *climate* (`emintemp`) is mo
 *weather* (`excessTemp`). Moreover, no signs of interaction between weather or climate and the rest of 
 covariates (not shown).
 
+# The biometric analysis of infant mortality
+
+A modern version of the Bourgeois-Pichat biometric modelling [@bp51a; @bp51b] is given here,
+*without* the "log-cube transform". 
 
 # Conclusion
 
