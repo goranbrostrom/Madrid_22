@@ -35,14 +35,22 @@ abstract: "The effect of extreme temperatures on infant mortality in the Umeå r
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, fig.path='figs/',fig.height=3, comment=NA, global.par=TRUE)
+knitr::opts_chunk$set(echo = FALSE, fig.path='figs/',fig.height=3, comment=NA)
+knitr::opts_knit$set(global.par = TRUE)
+##
 library(knitr)
 library(eha)
-par(las = 1, cex.axis = 0.7, cex.lab = 0.7)
+##par(las = 1, cex.axis = 0.7, cex.lab = 0.7)
 g <- function(x) (log(1 + x))^3 # x in days.
 dg <- function(x) (3 * (log(1 + x))^2) / (1 + x)
 ginv <- function(y) exp(y^(1/3)) - 1
 ```
+
+```{r setpar}
+par(las = 1, cex.axis = 0.8, cex.lab = 0.8, cex = 0.8)
+```
+
+
 
 # Introduction
 
@@ -62,6 +70,13 @@ and the classification into endogenous and exogenous factors will be discussed.
 One important reason for studying neonatal and postneonatal mortality separately is the 
 empirical findings by Bourgeois-Pichat [@bp51a;  @bp51b] about endogenous and exogenous 
 mortality and the log-cube transform.
+
+Figure \@ref(fig:map) shows the study area within Sweden, with the weather stations 
+marked. The map is taken from the paper by @junkka.
+
+```{r map, fig.height = 5, fig.cap = "Umeå, Skellefteå (orange) and its inland (green)."}
+include_graphics("myfigs/skum.png")
+```
 
 
 # Data
@@ -184,8 +199,8 @@ bjurtemp <- readRDS("data/bjurtemp.rds")
 stentemp <- readRDS("data/stentemp.rds")
 ```
 
-Temperature data are collected from two weather stations, *Umeå* and *Bjuröklubb*
-(used with population data from Skellefteå coastal area). Both stations deliver
+Temperature data are collected from three weather stations, *Umeå*, *Bjuröklubb*
+(used with population data from Skellefteå coastal area), and *Stensele* (Inland). All stations deliver
 daily temperature data covering our time period, usually three measures per day, morning,
 noon, and evening. In Table \@ref(tab:typweek), the Umeå data from the week 1--7 January,
 1923 is shown.
@@ -235,36 +250,59 @@ Figure
 \@ref(fig:monavgtemp) shows the average monthly distribution over all years. The subregional patterns 
 and levels are very similar.
 
-```{r monavgtemp, fig.cap="Weekly max and min temperature averages, 1895--1950.", fig.height = 3}
-oldpar <- par(mfrow = c(1, 2))
+```{r monavgtemp, fig.cap="Weekly max, mean, and min temperature averages, 1895--1950.", fig.height = 3}
+oldpar <- par(mfrow = c(1, 3))
 ## Umeå:
 umaxavg <- umetemp$emaxtemp[1:52]
 uminavg <- umetemp$emintemp[1:52]
-par(las = 1, cex.axis = 0.7, cex.lab = 0.7)
-plot(1:52, umaxavg, ylim = c(-20, 30), type = "b", col = "red", axes = FALSE,
+umeanavg <- umetemp$emeantemp[1:52]
+##par(las = 1, cex.axis = 0.7, cex.lab = 0.7)
+plot(1:52, umaxavg, ylim = c(-30, 30), type = "b", col = "red", axes = FALSE,
      xlab = "Week", ylab = "Temperature (C)", cex = 0.6, lwd = 0.7)
 text(17, 27, "Umeå", cex = 0.7)
 axis(1, at = c(1, 10, 29, 43, 52))
-axis(2, las = 1)
+m12 <- c(-30, -15, 0, 14.5, 25)
+axis(2, las = 1, at = m12)
 abline(h = 0)
 abline(v = 29, lty = 3)
-abline(h = c(-20, -10, 10, 20), lty = 3)
+abline(h = m12, lty = 3)
 lines(1:52, uminavg, type = "b", col = "blue", cex = 0.6, lwd = 0.7)
+lines(1:52, umeanavg, type = "l", col = "black", cex = 0.6, lwd = 0.8)
 text(8, 11, "max", col = "red", cex = 0.7)
 text(20, -9, "min", col = "blue", cex = 0.7)
 box()
 ## Skellefteå:
 bmaxavg <- bjurtemp$emaxtemp[1:52]
 bminavg <- bjurtemp$emintemp[1:52]
-plot(1:52, bmaxavg, ylim = c(-20, 30), type = "b", col = "red", axes = FALSE,
+bmeanavg <- bjurtemp$emeantemp[1:52]
+plot(1:52, bmaxavg, ylim = c(-30, 30), type = "b", col = "red", axes = FALSE,
      xlab = "Week", ylab = "Temperature (C)", cex = 0.6, lwd = 0.7)
 text(17, 27, "Skellefteå", cex = 0.7)
 axis(1, at = c(1, 10, 29, 43, 52))
-axis(2, las = 1)
+axis(2, las = 1, at = m12)
 abline(h = 0)
 abline(v = 29, lty = 3)
-abline(h = c(-20, -10, 10, 20), lty = 3)
+abline(h = m12, lty = 3)
 lines(1:52, bminavg, type = "b", col = "blue", cex = 0.6, lwd = 0.7)
+lines(1:52, bmeanavg, type = "l", col = "black", cex = 0.6, lwd = 0.8)
+text(8, 11, "max", col = "red", cex = 0.7)
+text(20, -9, "min", col = "blue", cex = 0.7)
+box()
+##
+## Inland:
+bmaxavg <- stentemp$emaxtemp[1:52]
+bminavg <- stentemp$emintemp[1:52]
+bmeanavg <- stentemp$emeantemp[1:52]
+plot(1:52, bmaxavg, ylim = c(-30, 30), type = "b", col = "red", axes = FALSE,
+     xlab = "Week", ylab = "Temperature (C)", cex = 0.6, lwd = 0.7)
+text(17, 27, "Inland", cex = 0.7)
+axis(1, at = c(1, 10, 29, 43, 52))
+axis(2, las = 1, at = m12)
+abline(h = 0)
+abline(v = 29, lty = 3)
+abline(h = m12, lty = 3)
+lines(1:52, bminavg, type = "b", col = "blue", cex = 0.6, lwd = 0.7)
+lines(1:52, bmeanavg, type = "l", col = "black", cex = 0.6, lwd = 0.8)
 text(8, 11, "max", col = "red", cex = 0.7)
 text(20, -9, "min", col = "blue", cex = 0.7)
 box()
@@ -373,7 +411,7 @@ fit.cr <- coxreg(Surv(enter, exit, event) ~  highTemp + aver + emeantemp +
                  data = winter)
 dr <- drop1(fit.cr, test = "Chisq")
 ltx2(fit.cr, dr = dr, caption = "Neonatal mortality, winter and spring. Adjusted for social branch, sex, illegitimacy, parity, time period, and subregion.", 
-     label = "tab:neoanalw", keep = NULL)
+     label = "tab:neoanalw", keep = 3)
 ```
 
 ### Summer and Fall
@@ -395,7 +433,7 @@ fit.cr <- coxreg(Surv(enter, exit, event) ~  aver + emeantemp +
                  data = summer)
 dr <- drop1(fit.cr, test = "Chisq")
 ltx2(fit.cr, dr = dr, caption = "Neonatal mortality, summer and fall. Adjusted for social branch, sex, illegitimacy, parity, time period, and subregion.", 
-     label = "tab:neoanals", keep = NULL)
+     label = "tab:neoanals", keep = 2)
 ```
 
 
@@ -455,10 +493,10 @@ gpneo <- pneo
 gpneo$enter <- g(gpneo$enter * 365)
 gpneo$exit <- g(gpneo$exit * 365)
 ##
-gtpneo <- toTpch(Surv(enter, exit, event) ~ period + sex + socBranch + socStatus + illeg + parity + 
+oj <- system.time(gtpneo <- toTpch(Surv(enter, exit, event) ~ period + sex + socBranch + illeg + parity + 
                     lowTemp + highTemp + season + aver
                 + emeantemp + subreg, 
-                data = gpneo, cuts = g(c(28, 365)))
+                data = gpneo, cuts = g(c(28, 365))))
 ```
 
 For now, let us look at the basic distribution of postneonatal life on the $g$ time
@@ -466,13 +504,31 @@ scale. We do it nonparametrically by calculating the *Nelson-Aalen* estimator of
 cumulative hazards function. See Figure \@ref(fig:nap), where the two curves are indistinguishable.
 
 ```{r nap, fig.cap = "Nelson-Aalen estimator and exponential cumulative hazards of postneonatal survival on the g scale.",fig.height=3.2}
+par(cex = 0.8)
 fit <- coxreg(Surv(enter, exit, event) ~ 1, data = gpneo)
-plot(fit, xlam = "g(t)")
+xx <- hazards(fit)
+plot(xx[[1]][, 1], cumsum(xx[[1]][, 2]), type = "s", xlab = "Age (days)",
+     col = "blue", ylab = "Cumulative hazards", axes = FALSE)
+axis(1, at = g(c(28, 183, 365)), labels = c(28, 183, 365))
+axis(2)
+box()
 fit.w <- tpchreg(oe(event, exposure) ~ 1, data = gtpneo, time = age)
 zz <- hazards(fit.w)
 lines(zz$x, zz$y, col = "red", lty = 2)
 legend("topleft", legend = c("Nelson-Aalen", "Exponential"), lty = 1:2, col = c("blue", "red"))
 ```
+
+The survival data set we work with here contains 102 thousand infants and 4.9 million records,
+an average of 48 records per infant, one record per calendar week in life. In total there are 
+`r sum(gpneo$event)` deaths, and a typical Cox regression execution time is slightly
+below one minute. A "naive" application of an exponential regression model to the same data
+is typically using around six minutes.
+
+However, with the exponential model (or generally, the *piecewise constant hazard* (pch)) in mind, data can be heavily reduced by *tabulation*, and the
+statistical *sufficiency principle* will guarantee that we get identical results.
+The tabulation itself takes about 20 seconds, and the analysis after that about 15 seconds, a
+total of 35 seconds. But the tabulation usually only needs to be done once. More about this later.
+
 
 
 ### Winter and Spring
@@ -482,11 +538,11 @@ legend("topleft", legend = c("Nelson-Aalen", "Exponential"), lty = 1:2, col = c(
 winter <- gtpneo[gtpneo$season %in% c("winter", "spring"), ]
 winter$season <- factor(winter$season)
 
-fit.tpch <- tpchreg(oe(event, exposure) ~ lowTemp + highTemp + aver + emeantemp + sex + socBranch + socStatus  + 
+fit.tpch <- tpchreg(oe(event, exposure) ~ lowTemp + highTemp + aver + emeantemp + sex + socBranch  + 
                         illeg + parity + subreg, 
                     data = winter, time = age)
 dr <- drop1(fit.tpch, test = "Chisq")
-ltx2(fit.tpch, dr = dr, caption = "Postneonatal mortality, winter and spring. Adjusted for social status and branch, sex, illegitimacy, parity, time period, and subregion.", label = "tab:postanalw", keep = NULL)
+ltx2(fit.tpch, dr = dr, caption = "Postneonatal mortality, winter and spring. Adjusted for social status and branch, sex, illegitimacy, parity, time period, and subregion.", label = "tab:postanalw", keep = 4)
 ```
 
 The result in Table \@ref(tab:postanalw) shows that *climate* (`emintemp`) is more important than 
@@ -501,11 +557,11 @@ covariates (not shown).
 summer <- gtpneo[gtpneo$season %in% c("summer", "fall"), ]
 winter$season <- factor(winter$season)
 
-fit.tpch <- tpchreg(oe(event, exposure) ~ lowTemp + highTemp + aver + emeantemp + sex + socBranch + socStatus  + 
+fit.tpch <- tpchreg(oe(event, exposure) ~ lowTemp + highTemp + aver + emeantemp + sex + socBranch  + 
                         illeg + parity + subreg, 
                     data = summer, time = age)
 dr <- drop1(fit.tpch, test = "Chisq")
-ltx2(fit.tpch, dr = dr, caption = "Postneonatal mortality, winter and spring. Adjusted for social status and branch, sex, illegitimacy, parity, time period, and subregion.", label = "tab:postanals", keep = NULL)
+ltx2(fit.tpch, dr = dr, caption = "Postneonatal mortality, winter and spring. Adjusted for social status and branch, sex, illegitimacy, parity, time period, and subregion.", label = "tab:postanals", keep = 4)
 ```
 
 The result in Table \@ref(tab:postanals) shows that *climate* (`emintemp`) is more important than 
@@ -516,6 +572,26 @@ covariates (not shown).
 
 A modern version of the Bourgeois-Pichat biometric modelling [@bp51a; @bp51b] is given here,
 *without* the "log-cube transform". 
+
+```{r bpprim, fig.cap = "Postneonatal survival is Weibull vs. Nelson-Aalen.", echo = TRUE}
+fit.w <- phreg(Surv(enter - 28 / 365, exit - 28 / 365, event) ~ 1, data = pneo)
+fit <- coxreg(Surv(enter - 28 / 365, exit - 28 / 365, event) ~ 1, data = pneo)
+plot(fit, fn = "cum", col = "blue")
+xx <- hazards(fit.w)
+lines(xx$x, xx$y, col = "red", lty = 2)
+```
+
+Not very good fit. However, we need a *left-truncated Weibull distribution*, that is, assuming that
+*exogeneous infant mortality* is Weibull distributed. Look here (Figure \@ref(fig:ltruw)). A perfect fit, 
+just like the one under the $g$- transform. This is the way to go, *more will come tomorrow*!
+
+```{r ltruw, fig.cap = "Postneonatal survival is truncated Weibull vs. Nelson-Aalen.", echo = TRUE}
+fit.w <- phreg(Surv(enter, exit, event) ~ 1, data = pneo)
+fit <- coxreg(Surv(enter, exit, event) ~ 1, data = pneo)
+plot(fit, fn = "cum", col = "blue")
+xx <- hazards(fit.w)
+lines(xx$x, xx$y - xx$y[1], col = "red", lty = 2)
+```
 
 # Conclusion
 
