@@ -19,8 +19,11 @@ library(skum) # Also loads 'eha'
 1.    (December 22, 2021) I have come to the conclusion that data from the data frame 
 *persons* is the best and easiest start.
 
-2.    (January 27. 2022) I found that teperature reports from *Stensele* are very similar
-to those from the very similar *Umeå* and *Skellefteå*. Conclusion: The Skellefteå inland is now included.
+2.    (January 27. 2022) I found that temperature reports from *Stensele* are very similar
+to those from the very similar *Umeå* and *Skellefteå*. 
+
+3.    (February 5, 202). Conclusion: The Skellefteå inland is now included. But with 
+summer temperatures from *Bjuröklubb*.
 
 
 We start with *skum::persons* instead of *skum::obs*, and age is to begin with in days,

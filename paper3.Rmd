@@ -72,10 +72,10 @@ empirical findings by Bourgeois-Pichat [@bp51a;  @bp51b] about endogenous and ex
 mortality and the log-cube transform.
 
 Figure \@ref(fig:map) shows the study area within Sweden, with the weather stations 
-marked. The map is taken from the paper by @junkka.
+marked. The map is taken (with permission) from the paper by @junkka.
 
 ```{r map, fig.height = 5, fig.cap = "Umeå, Skellefteå (orange) and its inland (green)."}
-include_graphics("myfigs/skum.png")
+include_graphics("myfigs/map2.png")
 ```
 
 
@@ -411,7 +411,7 @@ fit.cr <- coxreg(Surv(enter, exit, event) ~  highTemp + aver + emeantemp +
                  data = winter)
 dr <- drop1(fit.cr, test = "Chisq")
 ltx2(fit.cr, dr = dr, caption = "Neonatal mortality, winter and spring. Adjusted for social branch, sex, illegitimacy, parity, time period, and subregion.", 
-     label = "tab:neoanalw", keep = 3)
+     label = "tab:neoanalw", keep = NULL)
 ```
 
 ### Summer and Fall
@@ -433,7 +433,7 @@ fit.cr <- coxreg(Surv(enter, exit, event) ~  aver + emeantemp +
                  data = summer)
 dr <- drop1(fit.cr, test = "Chisq")
 ltx2(fit.cr, dr = dr, caption = "Neonatal mortality, summer and fall. Adjusted for social branch, sex, illegitimacy, parity, time period, and subregion.", 
-     label = "tab:neoanals", keep = 2)
+     label = "tab:neoanals", keep = NULL)
 ```
 
 
@@ -542,7 +542,7 @@ fit.tpch <- tpchreg(oe(event, exposure) ~ lowTemp + highTemp + aver + emeantemp 
                         illeg + parity + subreg, 
                     data = winter, time = age)
 dr <- drop1(fit.tpch, test = "Chisq")
-ltx2(fit.tpch, dr = dr, caption = "Postneonatal mortality, winter and spring. Adjusted for social status and branch, sex, illegitimacy, parity, time period, and subregion.", label = "tab:postanalw", keep = 4)
+ltx2(fit.tpch, dr = dr, caption = "Postneonatal mortality, winter and spring. Adjusted for social status and branch, sex, illegitimacy, parity, time period, and subregion.", label = "tab:postanalw", keep = NULL)
 ```
 
 The result in Table \@ref(tab:postanalw) shows that *climate* (`emintemp`) is more important than 
@@ -561,7 +561,7 @@ fit.tpch <- tpchreg(oe(event, exposure) ~ lowTemp + highTemp + aver + emeantemp 
                         illeg + parity + subreg, 
                     data = summer, time = age)
 dr <- drop1(fit.tpch, test = "Chisq")
-ltx2(fit.tpch, dr = dr, caption = "Postneonatal mortality, winter and spring. Adjusted for social status and branch, sex, illegitimacy, parity, time period, and subregion.", label = "tab:postanals", keep = 4)
+ltx2(fit.tpch, dr = dr, caption = "Postneonatal mortality, winter and spring. Adjusted for social status and branch, sex, illegitimacy, parity, time period, and subregion.", label = "tab:postanals", keep = NULL)
 ```
 
 The result in Table \@ref(tab:postanals) shows that *climate* (`emintemp`) is more important than 
@@ -571,9 +571,20 @@ covariates (not shown).
 # The biometric analysis of infant mortality
 
 A modern version of the Bourgeois-Pichat biometric modelling [@bp51a; @bp51b] is given here,
-*without* the "log-cube transform". 
+*without* the "log-cube transform". A first try is fit a *Weibull* distribution to the time
+to death for an infant alive at age 28 /365 years (28 days), that is, time is measured from
+age 28 days until death or time reaches 365 - 28 days, when follow-up is censored.
+In **R** language, with the package *eha* [@eha], we try
 
-```{r bpprim, fig.cap = "Postneonatal survival is Weibull vs. Nelson-Aalen.", echo = TRUE}
+```
+fit.w <- phreg(Surv(enter - 28/365, exit - 28/365, event) ~ 1, data = pneo)
+fit <- coxreg(Surv(enter - 28/365, exit - 28/365, event) ~ 1, data = pneo)
+```
+
+where `phreg` performs the Weibull regression (no covariates) and `coxreg` the Cox regression. In 
+Figure \@ref(fig:bpprim) the result is shown in the form of the two cumulative hazards estimates.
+
+```{r bpprim, fig.cap = "Postneonatal survival, Weibull vs. Nelson-Aalen."}
 fit.w <- phreg(Surv(enter - 28 / 365, exit - 28 / 365, event) ~ 1, data = pneo)
 fit <- coxreg(Surv(enter - 28 / 365, exit - 28 / 365, event) ~ 1, data = pneo)
 plot(fit, fn = "cum", col = "blue")
@@ -581,18 +592,83 @@ xx <- hazards(fit.w)
 lines(xx$x, xx$y, col = "red", lty = 2)
 ```
 
-Not very good fit. However, we need a *left-truncated Weibull distribution*, that is, assuming that
-*exogeneous infant mortality* is Weibull distributed. Look here (Figure \@ref(fig:ltruw)). A perfect fit, 
-just like the one under the $g$- transform. This is the way to go, *more will come tomorrow*!
+Not a very good fit. However, we need a *left-truncated Weibull distribution*, that is, assuming that
+*exogeneous infant mortality* is Weibull distributed.
 
-```{r ltruw, fig.cap = "Postneonatal survival is truncated Weibull vs. Nelson-Aalen.", echo = TRUE}
+```
 fit.w <- phreg(Surv(enter, exit, event) ~ 1, data = pneo)
 fit <- coxreg(Surv(enter, exit, event) ~ 1, data = pneo)
-plot(fit, fn = "cum", col = "blue")
-xx <- hazards(fit.w)
-lines(xx$x, xx$y - xx$y[1], col = "red", lty = 2)
 ```
+Note the difference: No subtraction of the 28 days from the time variables, which implies that the time origin
+is *birth* and *not* the 28th day of life. Thus our data are *left truncated* at 28 days, and the 
+Weibull attempt estimates neonatal exogeneous mortality through *extrapolation*. The Cox regression approach
+is a non-parametric procedure, and thus not capable of any extrapolated estimation, so neonatal
+mortality will simply be taken as zero.
+
+
+```{r ltruw, fig.cap = "Postneonatal survival, truncated Weibull vs. Nelson-Aalen."}
+fit.w <- phreg(Surv(enter, exit, event) ~ 1, data = pneo)
+fit <- coxreg(Surv(enter, exit, event) ~ 1, data = pneo)
+oldpar <- par(mfrow = c(1, 2))
+##check.dist(fit, fit.w)
+cc <- hazards(fit)
+plot(cc[[1]][, 1], cumsum(cc[[1]][, 2]), type = "l", col = "blue", ylim = c(0, 0.07), axes = FALSE,
+     xlab = "Age", ylab = "Cumulative hazards")
+axis(1, at = c(28 / 365, 1), labels = c("28/365", "1"))
+axis(2, las = 1)
+box()
+xx <- hazards(fit.w)
+lines(xx$x, xx$y, col = "red", lty = 2)
+plot(cc[[1]][, 1], cumsum(cc[[1]][, 2]), type = "l", col = "blue", ylim = c(0, 0.07), axes = FALSE,
+     xlab = "Age", ylab = "Cumulative hazards")
+##plot(fit, fn = "cum", col = "blue", ylim = c(0, 0.07), axes = FALSE)
+axis(1, at = c(28 / 365, 1), labels = c("28/365", "1"))
+axis(2, las = 1)
+box()
+lines(xx$x, xx$y - xx$y[1], col = "red", lty = 2)
+par(oldpar)
+```
+
+ Look here (Figure \@ref(fig:ltruw))! A perfect fit, 
+just like the one under the $g$- transform. But the Weibull curve
+does not start at zero (left hand panel), however it is parallell 
+to the Nelson-Aalen estimator, and the right hand panel shows what happens if we subtract 
+the start value from the Weibull curve and redraw. 
+
+## Separate exogeneous and endogeneous Infant mortality
+
+So, finally, we show the full procedure how to perform the "biometric analysis" *without*
+the log-cube transform. It simply consists of two steps: 
+
+1.    Run a Cox regression on the full data set.
+2.    Run a *left truncated* (at 28 days) Weibull regression.
+3.    Plot the two cumulative hazards functions in the same graph and read
+      their crossings of the vertical line at age = 1 year (365 days). Figure \@ref(fig:crossings).
+     
+```{r crossings, fig.cap = "Biometric analysis.", fig.height = 4}
+fit.c <- coxreg(Surv(enter, exit, event) ~ 1, data = infdat)
+fit.w <- phreg(Surv(enter, exit, event) ~ 1, data = pneo)
+cc <- hazards(fit.c)
+plot(c(0, cc[[1]][, 1]), c(0, cumsum(cc[[1]][, 2])), type = "l", col = "blue", axes = FALSE,
+     xlab = "Age (days)", ylab = "Cumulative hazards", ylim = c(0, 0.08))
+axis(1, at = c(0, 28 / 365, 1), labels = c(0, 28, 365))
+axis(2, las = 1, at = round(c(0, max(cumsum(cc[[1]][, 2])), max(xx$y)), 3))
+##abline(v = 1)
+box()
+xx <- hazards(fit.w)
+lines(xx$x, xx$y, col = "red", lty = 2)
+abline(h = 0, v = 0)
+abline(v = 1, lty = 3)
+abline(v = 28 / 365, lty = 3)
+abline(h = c(max(cumsum(cc[[1]][, 2])), max(xx$y)), lty = 3)
+```
+
+So, total mortality is 0.076, exogeneous mortality is 0.063, and endogeneous mortality
+is the difference, 0.013, or 17 per cent of the total mortality.
+
+Now, try the original "biometric" approach and compare *(Exercise)*.
+
 
 # Conclusion
 
-Remains to be written.
+Remains to be written, especially the discussion about temperature and mortality. 
