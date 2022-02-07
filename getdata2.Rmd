@@ -181,7 +181,7 @@ bjurtemp <- tempdat("bjur", temp_ivl)
 
 ##Changed 5 feb 2022:
 ##stentemp <- tempdat("sten", temp_ivl) # Added 27 Jan 2022
-source("R/normal.R")
+source("R/normal.R") # normal = Norsjö - Malå!!
 stentemp <- normal(temp_ivl)
 ## End change
 

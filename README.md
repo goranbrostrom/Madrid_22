@@ -5,5 +5,9 @@ Infant mortality, climate and weather
 
 # Paper for presentation in Madrid, March 2022
 
-The file *paper3.pdf* is the result of this project. Note the time stamp
-on the front page, the report is updated regularly for some time.
+Now Bourgeois-Pichat and the log-cube transform are erased, but the
+present state of *paper4.pdf* chaotic. No text is updated, only some
+text is removed.
+
+The file *paper3.pdf* is the old result of the project. Note the time
+stamp on the front page, this report is *not* updated for some time.

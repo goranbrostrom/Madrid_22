@@ -357,13 +357,19 @@ and extremely high temperature (`highTemp`) is bad during summer, but good other
 So we group season into two categories, *summer* and *not summer*.
 In each case separate analyses for neonatal and postneonatal mortality are performed. 
 
+The *summer* half-year is the weeks 14--39, about 1 April to 30 September, and the *winter*
+half-year is the rest, weeks 1-13 and 40--52, 1 January to 31 March and 1 October to 31 December.
+This is the division made in @karlsson, and we keep it for comparability reasons.
+
 ```{r prepare}
 source("R/ltx2.R")
 infdat$parity <- cut(infdat$parity, c(-2, 1.5, 4.5, 19), labels = c("1", "2-4", "5+"))
 infdat$period <- cut(infdat$birthdate, c(1895, 1914, 1935, 1951), dig.lab = 5)
 ##levels(infdat$subreg) <- c("ume", "ske")
-infdat$season <- cut(infdat$week, c(-1, 9.5, 22.5, 35.5, 48.5, 52.5), labels = c("winter", "spring", "summer", "fall", "winter"))
-infdat$season <- as.factor(infdat$season)
+##infdat$season <- cut(infdat$week, c(-1, 9.5, 22.5, 35.5, 48.5, 52.5), labels = c("winter", "spring", "summer", "fall", "winter"))
+##infdat$season <- as.factor(infdat$season)
+## New:
+infdat$summer <- infdat[infdat$week %in% 14:39, ]
 infdat$emeantemp <- round(infdat$emeantemp)
 levels(infdat$socBranch) <- c("office", "farming", "office", "worker", "worker") # NOTE!
 ```
@@ -392,9 +398,9 @@ neo <- age.window(infdat, c(0, 28/ 365))
 
 The analyses are split into two parts by season, *winter + spring* is one, and *summer + fall* the other.
 
-### Winter and Spring
+### Winter
 
-This period refers to the months *December to May*. A Cox regression involves as
+This period refers to the months *October to March*. A Cox regression involves as
 interesting variables *highTemp*, an indicator of temperature at least four degrees
 above the expected for at least two weeks in a row, *emeantemp* the expected temperature
 the actual weeek, and *aver* the *excess temperature* the actual week.
@@ -402,21 +408,21 @@ the actual weeek, and *aver* the *excess temperature* the actual week.
 
 ```{r neoanalw, results = 'asis'}
 ##library(survival)
-winter <- neo[neo$season %in% c("winter", "spring"), ]
-winter$season <- factor(winter$season)
+winter <- neo[!neo$summer, ]
+##winter$season <- factor(winter$season)
 ##neo$exit <- g(neo$exit * 365) # Skip the log-cube transformation
 ##neo$enter <- g(neo$enter * 365)
 fit.cr <- coxreg(Surv(enter, exit, event) ~  highTemp + aver + emeantemp + 
-                     sex + season + subreg + illeg + parity + socBranch,
+                     sex + subreg + illeg + parity + socBranch,
                  data = winter)
 dr <- drop1(fit.cr, test = "Chisq")
-ltx2(fit.cr, dr = dr, caption = "Neonatal mortality, winter and spring. Adjusted for social branch, sex, illegitimacy, parity, time period, and subregion.", 
+ltx2(fit.cr, dr = dr, caption = "Neonatal mortality, October to March. Adjusted for social branch, sex, illegitimacy, parity, time period, and subregion.", 
      label = "tab:neoanalw", keep = NULL)
 ```
 
-### Summer and Fall
+### Summer
 
-This period refers to the months *April to October*. A Cox regression involves as
+This period refers to the months *April to September*. A Cox regression involves as
 interesting variables *highTemp*, an indicator of temperature at least four degrees
 above the expected for at least two weeks in a row, *emeantemp* the expected temperature
 the actual weeek, and *aver* the *excess temperature* the actual week.
@@ -424,15 +430,15 @@ the actual weeek, and *aver* the *excess temperature* the actual week.
 
 ```{r neoanals, results = 'asis'}
 ##library(survival)
-summer <- neo[neo$season %in% c("summer", "fall"), ]
-summer$season <- factor(summer$season)
+summer <- neo[neo$summer, ]
+##summer$season <- factor(summer$season)
 ##neo$exit <- g(neo$exit * 365) # Skip the log-cube transformation
 ##neo$enter <- g(neo$enter * 365)
 fit.cr <- coxreg(Surv(enter, exit, event) ~  aver + emeantemp + 
-                     sex + season + subreg + illeg + parity + socBranch,
+                     sex + subreg + illeg + parity + socBranch,
                  data = summer)
 dr <- drop1(fit.cr, test = "Chisq")
-ltx2(fit.cr, dr = dr, caption = "Neonatal mortality, summer and fall. Adjusted for social branch, sex, illegitimacy, parity, time period, and subregion.", 
+ltx2(fit.cr, dr = dr, caption = "Neonatal mortality, April to September. Adjusted for social branch, sex, illegitimacy, parity, time period, and subregion.", 
      label = "tab:neoanals", keep = NULL)
 ```
 
@@ -494,7 +500,7 @@ gpneo$enter <- g(gpneo$enter * 365)
 gpneo$exit <- g(gpneo$exit * 365)
 ##
 oj <- system.time(gtpneo <- toTpch(Surv(enter, exit, event) ~ period + sex + socBranch + illeg + parity + 
-                    lowTemp + highTemp + season + aver
+                    lowTemp + highTemp + summer + aver
                 + emeantemp + subreg, 
                 data = gpneo, cuts = g(c(28, 365))))
 ```
@@ -531,18 +537,18 @@ total of 35 seconds. But the tabulation usually only needs to be done once. More
 
 
 
-### Winter and Spring
+### Winter
 
 
 ```{r postanalw, results='asis'}
-winter <- gtpneo[gtpneo$season %in% c("winter", "spring"), ]
-winter$season <- factor(winter$season)
+winter <- gtpneo[gtpneo$summer == 0, ]
+##winter$season <- factor(winter$season)
 
 fit.tpch <- tpchreg(oe(event, exposure) ~ lowTemp + highTemp + aver + emeantemp + sex + socBranch  + 
                         illeg + parity + subreg, 
                     data = winter, time = age)
 dr <- drop1(fit.tpch, test = "Chisq")
-ltx2(fit.tpch, dr = dr, caption = "Postneonatal mortality, winter and spring. Adjusted for social status and branch, sex, illegitimacy, parity, time period, and subregion.", label = "tab:postanalw", keep = NULL)
+ltx2(fit.tpch, dr = dr, caption = "Postneonatal mortality, October to March. Adjusted for social branch, sex, illegitimacy, parity, time period, and subregion.", label = "tab:postanalw", keep = NULL)
 ```
 
 The result in Table \@ref(tab:postanalw) shows that *climate* (`emintemp`) is more important than 
@@ -550,18 +556,18 @@ The result in Table \@ref(tab:postanalw) shows that *climate* (`emintemp`) is mo
 covariates (not shown).
 
 
-### Summer and Fall
+### Summer
 
 
 ```{r postanals, results='asis'}
-summer <- gtpneo[gtpneo$season %in% c("summer", "fall"), ]
-winter$season <- factor(winter$season)
+summer <- gtpneo[gtpneo$summer == 1, ]
+##winter$season <- factor(winter$season)
 
 fit.tpch <- tpchreg(oe(event, exposure) ~ lowTemp + highTemp + aver + emeantemp + sex + socBranch  + 
                         illeg + parity + subreg, 
                     data = summer, time = age)
 dr <- drop1(fit.tpch, test = "Chisq")
-ltx2(fit.tpch, dr = dr, caption = "Postneonatal mortality, winter and spring. Adjusted for social status and branch, sex, illegitimacy, parity, time period, and subregion.", label = "tab:postanals", keep = NULL)
+ltx2(fit.tpch, dr = dr, caption = "Postneonatal mortality, April to September. Adjusted for social branch, sex, illegitimacy, parity, time period, and subregion.", label = "tab:postanals", keep = NULL)
 ```
 
 The result in Table \@ref(tab:postanals) shows that *climate* (`emintemp`) is more important than 
@@ -577,16 +583,20 @@ age 28 days until death or time reaches 365 - 28 days, when follow-up is censore
 In **R** language, with the package *eha* [@eha], we try
 
 ```
-fit.w <- phreg(Surv(enter - 28/365, exit - 28/365, event) ~ 1, data = pneo)
-fit <- coxreg(Surv(enter - 28/365, exit - 28/365, event) ~ 1, data = pneo)
+births <- readRDS("data/births.rds")
+pbirths <- age.window(births, c(28 / 365, 1)
+fit.w <- phreg(Surv(enter - 28/365, exit - 28/365, event) ~ 1, data = pbirths)
+fit <- coxreg(Surv(enter - 28/365, exit - 28/365, event) ~ 1, data = pbirths)
 ```
 
 where `phreg` performs the Weibull regression (no covariates) and `coxreg` the Cox regression. In 
 Figure \@ref(fig:bpprim) the result is shown in the form of the two cumulative hazards estimates.
 
 ```{r bpprim, fig.cap = "Postneonatal survival, Weibull vs. Nelson-Aalen."}
-fit.w <- phreg(Surv(enter - 28 / 365, exit - 28 / 365, event) ~ 1, data = pneo)
-fit <- coxreg(Surv(enter - 28 / 365, exit - 28 / 365, event) ~ 1, data = pneo)
+births <- readRDS("data/births.rds")
+pbirths <- age.window(births, c(28 / 365, 1))
+fit.w <- phreg(Surv(enter - 28 / 365, exit - 28 / 365, event) ~ 1, data = pbirths)
+fit <- coxreg(Surv(enter - 28 / 365, exit - 28 / 365, event) ~ 1, data = pbirths)
 plot(fit, fn = "cum", col = "blue")
 xx <- hazards(fit.w)
 lines(xx$x, xx$y, col = "red", lty = 2)
@@ -596,8 +606,8 @@ Not a very good fit. However, we need a *left-truncated Weibull distribution*, t
 *exogeneous infant mortality* is Weibull distributed.
 
 ```
-fit.w <- phreg(Surv(enter, exit, event) ~ 1, data = pneo)
-fit <- coxreg(Surv(enter, exit, event) ~ 1, data = pneo)
+fit.w <- phreg(Surv(enter, exit, event) ~ 1, data = pbirths)
+fit <- coxreg(Surv(enter, exit, event) ~ 1, data = pbirths)
 ```
 Note the difference: No subtraction of the 28 days from the time variables, which implies that the time origin
 is *birth* and *not* the 28th day of life. Thus our data are *left truncated* at 28 days, and the 
@@ -607,8 +617,8 @@ mortality will simply be taken as zero.
 
 
 ```{r ltruw, fig.cap = "Postneonatal survival, truncated Weibull vs. Nelson-Aalen."}
-fit.w <- phreg(Surv(enter, exit, event) ~ 1, data = pneo)
-fit <- coxreg(Surv(enter, exit, event) ~ 1, data = pneo)
+fit.w <- phreg(Surv(enter, exit, event) ~ 1, data = pbirths)
+fit <- coxreg(Surv(enter, exit, event) ~ 1, data = pbirths)
 oldpar <- par(mfrow = c(1, 2))
 ##check.dist(fit, fit.w)
 cc <- hazards(fit)
@@ -635,7 +645,7 @@ does not start at zero (left hand panel), however it is parallell
 to the Nelson-Aalen estimator, and the right hand panel shows what happens if we subtract 
 the start value from the Weibull curve and redraw. 
 
-## Separate exogeneous and endogeneous Infant mortality
+## The biometric analysis of  exogeneous and endogeneous infant mortality
 
 So, finally, we show the full procedure how to perform the "biometric analysis" *without*
 the log-cube transform. It simply consists of two steps: 
@@ -646,8 +656,8 @@ the log-cube transform. It simply consists of two steps:
       their crossings of the vertical line at age = 1 year (365 days). Figure \@ref(fig:crossings).
      
 ```{r crossings, fig.cap = "Biometric analysis.", fig.height = 4}
-fit.c <- coxreg(Surv(enter, exit, event) ~ 1, data = infdat)
-fit.w <- phreg(Surv(enter, exit, event) ~ 1, data = pneo)
+fit.c <- coxreg(Surv(enter, exit, event) ~ 1, data = births)
+fit.w <- phreg(Surv(enter, exit, event) ~ 1, data = pbirths)
 cc <- hazards(fit.c)
 plot(c(0, cc[[1]][, 1]), c(0, cumsum(cc[[1]][, 2])), type = "l", col = "blue", axes = FALSE,
      xlab = "Age (days)", ylab = "Cumulative hazards", ylim = c(0, 0.08))
