@@ -5,6 +5,9 @@ Infant mortality, climate and weather
 
 # Paper for presentation in Madrid, March 2022
 
+The worst errors are removed (9 February at 00:18), but some may be
+around. And text i missing. NOTE: Cache (global) introduced.
+
 Now Bourgeois-Pichat and the log-cube transform are erased, but the
 present state of *paper4.pdf* chaotic. No text is updated, only some
 text is removed.

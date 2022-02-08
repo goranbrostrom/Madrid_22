@@ -101,7 +101,7 @@ per$socBranch <- as.character(per$socBranch)
 per$socBranch[is.na(per$socBranch)] <- "none"
 per$socBranch <- factor(per$socBranch)
 per$socStatus <- as.character(per$socStatus)
-per$socStatus[is.na(per$socStatus)] <- "unknown"
+per$socStatus[is.na(per$socStatus)] <- "low"
 per$socStatus <- factor(per$socStatus)
 per <- per[, c("id", "sex", "birthdate", "mid", "foddat", "parity", "illeg", 
                "subreg", "socBranch", "socStatus", "hisclass", "enter", "exit", "event")]
