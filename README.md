@@ -5,6 +5,8 @@ Infant mortality, climate and weather
 
 # Paper for presentation in Madrid, March 2022
 
+Tables are made shorter, some text updated (Feb 9 at 17:05).
+
 The worst errors are removed (9 February at 00:18), but some may be
 around. And text i missing. NOTE: Cache (global) introduced.
 
