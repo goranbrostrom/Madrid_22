@@ -54,17 +54,15 @@ infdat  <- readRDS("data/infdat4.rds")
 # Introduction
 
 The impact of ambient temperature variations on infant mortality is studied for 
-a northern Sweden coastal area, the Umeå and Skellefteå regions, during the 
+two northern Sweden areas, the Umeå coastal region and Skellefteå coastal and inland regions, during the 
 first half of the twentieth century. Two recent papers [@junkka; @karlsson] studied 
-neonatal mortality and temperature variations in a larger geographical area containing 
-the present one during the 
+neonatal mortality and temperature variations in this geographical area during the 
 years 1880--1950. Climate and mortality in general is a research area that has 
-generated great interest over the last years, see @tbgb10.
+generated great interest over the last years, see @tbgb10 for an example of our own efforts.
 
 The effect of seasonal variation and the occurrence of extreme monthly temperatures
-is studied and interacted with sex, social class, and legitimacy. Studies are performed 
-separately for neonatal  and postneonatal mortality, and for winter and summer seasons, 
-and the classification into endogenous and exogenous factors will be discussed.
+is studied and interacted with social class and time period. Studies are performed 
+separately for neonatal  and postneonatal mortality, and for winter and summer seasons.
 
 Figure \@ref(fig:map) shows the study area within Sweden, with the weather stations 
 marked. The map is taken (with permission) from the paper by @junkka.
@@ -99,8 +97,6 @@ The following *static* characteristics were observed on each child:
 
 **socBranch** Working branch of father (if any).
 
-**socStatus** Social status of family, based on HISCLASS.
-
 **illeg** Mother unmarried?
 
 **parity** Order among siblings.
@@ -108,7 +104,7 @@ The following *static* characteristics were observed on each child:
 Some crude statistics about infant, neonatal, and postneonatal mortality are shown in 
 Figures.
 
-Figure \@ref(fig:mortstat) shows the average monthly crude infant mortality, and a clear seasonal pattern is visible.
+Figure \@ref(fig:mortstat) shows the average weekly crude infant mortality, and a clear seasonal pattern is visible.
 
 ```{r mortstat, fig.cap = "Crude infant mortality by week of year, Umeå/Skellefteå 1895--1950.", fig.height = 3}
 ##infdat <- readRDS("data/infdat4.rds") Already done
@@ -124,7 +120,7 @@ abline(h = 0)
 box()
 ```
 
-The average monthly neonatal mortality is shown in Figure \@ref(fig:neodata).
+The average weekly neonatal mortality is shown in Figure \@ref(fig:neodata).
 
 ```{r neodata, fig.cap = "Crude neonatal mortality by week of year, Umeå/Skellefteå 1895--1950.", fig.height = 3}
 neo <- age.window(infdat, c(0, 28 / 365))
@@ -143,7 +139,7 @@ box()
 
 The seasonal pattern is similar to the one we found above for infant mortality.
 
-The average monthly postneonatal mortality is shown in Figure \@ref(fig:pneodata).
+The average weekly postneonatal mortality is shown in Figure \@ref(fig:pneodata).
 
 ```{r pneodata, fig.cap = "Crude postneonatal mortality by week of year, Umeå/Skellefteå 1895--1950.", fig.height = 3}
 pneo <- age.window(infdat, c(28 / 365, 1))
@@ -186,6 +182,11 @@ abline(h = 0)
 abline(h = c(0.2, 0.4, 0.6), lty = 3)
 ```
 
+Note that the estimates of neonatal and postneonatal mortality are non-standard here: 
+They are calculated as *occurrence-exposure rates*, that is, the number of deaths
+divided by *exposure time*. They are thus crude *hazard rates*, not probabilities, which is 
+more common in definitions of mortality.
+
 ## Temperature
 
 ```{r readtemp}
@@ -211,7 +212,10 @@ tbl(ww, caption = "Raw temperature data from first week of 1923, Umeå.", fs = 1
 
 There are three measurements per day, or 21 per week. In the forthcoming analyses,
 the weekly data are summarized in a few measurements, see Table \@ref(tab:cond).
-
+Our rule for week numbering is that week No. 1 always start on January 1. Week No. 52
+ always ends at December 31, and so will be eight days long, except for leap years, when
+ it will be nine days long.
+ 
 ```{r cond}
 sh <- umetemp[umetemp$year == 1923 & umetemp$week == 1, ]
 tbl(round(sh[, 1:8], 2), caption = "Weekly summarized temperature data: Umeå 1923, first week.", fs = 9)
@@ -425,14 +429,19 @@ dr.all <- drop1(fit.all, test = "Chisq")
   ##               data = tabpost, time = age))
 ```
 
+Covariates may affect neonatal and postneonatal mortality differently, and one way to 
+investigate that is to stratify the infant mortality data into two age intervals, one from
+birth to one month of age and the other from one month to one year of age. Then the
+interaction between the stratum variable and other variables of interest is investigated, 
+with this result:
 
 ```{r shownonprop, cache = FALSE}
-tbl(round(dr.all, 4), caption = "Proportionality tests, neonatal vs. postneonatal.", rownames = TRUE)
+dr.all
+##tbl(round(dr.all, 4), caption = "Proportionality tests, neonatal vs. postneonatal.", rownames = TRUE)
 ```
 
-From Table \@ref(tab:shownonprop) we can see that the variables *emeantemp*, *lowTemp*, *socStatus* and *period* all have different effects on mortality in the neonatal case compared to the postneonatal case. In terms of 
-*infant mortality*, we can say that these caovariates have non-proportional effects. As an example, see Figure  
-
+We can see that the variables *emeantemp*, *lowTemp*, *socStatus* and *period* all have different effects on mortality in the neonatal case compared to the postneonatal case. In terms of 
+*infant mortality*, we can say that these caovariates have non-proportional effects.
 
 ## Neonatal mortality
 
@@ -464,7 +473,7 @@ dr <- drop1(fit.neow, test = "Chisq")
 ```
 
 ```{r neoanalw, results = "asis", cache = FALSE}
-ltx2(fit.neow, dr = dr, caption = "Neonatal mortality, October to March. Adjusted for social branch, sex, illegitimacy, parity, time period, and subregion.", 
+ltx2(fit.neow, dr = dr, caption = "Neonatal mortality, October to March.", 
      label = "tab:neoanalw", keep = NULL)
 ```
 
@@ -487,7 +496,7 @@ dr.neos <- drop1(fit.neos, test = "Chisq")
 ```
 
 ```{r neoanals, results = 'asis', cache = FALSE}
-ltx2(fit.neos, dr = dr.neos, caption = "Neonatal mortality, April to September. Adjusted for social branch, sex, illegitimacy, parity, time period, and subregion.", 
+ltx2(fit.neos, dr = dr.neos, caption = "Neonatal mortality, April to September.", 
      label = "tab:neoanals", keep = NULL)
 ```
 
@@ -510,16 +519,19 @@ fit.postw <- tpchreg(oe(event, exposure) ~ period * (lowTemp + highTemp + extemp
 dr.postw <- drop1(fit.postw, test = "Chisq")
 ```
 
-```{r postanalw, results='asis', cache = FALSE}
-tbl(round(dr.postw, 4), caption = "Interaction tests with temperature and period, postneonatal mortality.", rownames = TRUE)
-##ltx2(fit.tpch, dr = dr, caption = "Postneonatal mortality, October to March. Adjusted for social branch, sex, ##illegitimacy, parity, time period, and subregion.", label = "tab:postanalw", keep = NULL)
+Interaction tests with temperature and period, postneonatal mortality:
+
+```{r postanalw, cache = FALSE}
+round(dr.postw, 4)
+#tbl(round(dr.postw, 4), caption = "Interaction tests with temperature and period, postneonatal ##mortality.", rownames = TRUE)
 ```
 
-The result in Table \@ref(tab:postanalw) shows that the temperature effects vary with time period,
-so we continue with seaparate analyses for the time periods `r levels(tabpost$period)`.
+This shows that the temperature effects do not vary with time period,
+but we continue with separate analyses for the time periods `r levels(tabpost$period)`. Just
+to make sure, will be joined when appropriate.
 
 ```{r setformw}
-form <- as.formula("oe(event, exposure) ~ lowTemp + highTemp + extemp + emeantemp + socStatus + subreg + sex + parity")
+form <- as.formula("oe(event, exposure) ~ lowTemp + highTemp + extemp + emeantemp + socBranch + subreg + sex + parity")
 ```
 
 
@@ -531,7 +543,7 @@ dr.postw1 <- drop1(fit.postw1, test = "Chisq")
 ```
 
 ```{r postw1, results = "asis", cache = FALSE}
-ltx2(fit.postw1, dr = dr.postw1, caption = "Postneonatal mortality, October to March 1895-1914. Adjusted for social branch, sex, illegitimacy, parity, and subregion.", label = "tab:postw1", keep = NULL)
+ltx2(fit.postw1, dr = dr.postw1, caption = "Postneonatal mortality, October to March 1895-1914. Adjusted for social branch, sex, parity, and subregion.", label = "tab:postw1", keep = 5)
 ```
 
 Table \@ref(tab:postw1) shows that
@@ -544,7 +556,7 @@ dr.postw2 <- drop1(fit.postw2, test = "Chisq")
 ```
 
 ```{r postw2, results = "asis", cache = FALSE}
-ltx2(fit.postw2, dr = dr.postw2, caption = "Postneonatal mortality, October to March 1914-1934. Adjusted for social branch, sex, illegitimacy, parity, and subregion.", label = "tab:postw2", keep = NULL)
+ltx2(fit.postw2, dr = dr.postw2, caption = "Postneonatal mortality, October to March 1914-1934. Adjusted for sex, parity, and subregion.", label = "tab:postw2", keep = 5)
 ```
 
 Table \@ref(tab:postw2) shows that
@@ -557,7 +569,7 @@ dr.postw3 <- drop1(fit.postw3, test = "Chisq")
 ```
 
 ```{r postw3, results = "asis", cache = FALSE}
-ltx2(fit.postw3, dr = dr.postw3, caption = "Postneonatal mortality, October to March 1935-1950. Adjusted for social branch, sex, illegitimacy, parity, and subregion.", label = "tab:postw3", keep = NULL)
+ltx2(fit.postw3, dr = dr.postw3, caption = "Postneonatal mortality, October to March 1935-1950. Adjusted for sex, parity, and subregion.", label = "tab:postw3", keep = 5)
 ```
 
 Table \@ref(tab:postw3) shows that
@@ -578,11 +590,11 @@ dr <- drop1(fit.posts, test = "Chisq")
 
 
 ```{r postanals, results='asis', cache = FALSE}
-ltx2(fit.posts, dr = dr, caption = "Postneonatal mortality, April to September. Adjusted for social branch, sex, illegitimacy, parity, time period, and subregion.", label = "tab:postanals", keep = NULL)
+ltx2(fit.posts, dr = dr, caption = "Postneonatal mortality, April to September. Adjusted for sex, parity, time period, and subregion.", label = "tab:postanals", keep = 5)
 ```
 
-The result in Table \@ref(tab:postanals) shows that *climate* (`emintemp`) is more important than 
-*weather* (`excessTemp`). Moreover, no signs of interaction between weather or climate and the rest of 
+The result in Table \@ref(tab:postanals) shows that *climate* (`emeantemp`) is more important than 
+*weather* (`exTemp`). Moreover, no signs of interaction between weather or climate and the rest of 
 covariates (not shown).
 
 
