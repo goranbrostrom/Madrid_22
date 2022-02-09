@@ -45,11 +45,11 @@ tempdat <- function(filename = "ume", period = c(1894, 1951)){
     temp$emeantemp <- tapply(temp$meantemp, temp$week, mean)[indx]
     temp$heat <- round(temp$maxtemp - temp$emaxtemp)
     temp$cold <- round(temp$mintemp - temp$emintemp)
-    temp$aver <- round(temp$meantemp - temp$emeantemp)
+    temp$extemp <- round(temp$meantemp - temp$emeantemp)
     # NEW 28 Jan 2022:
     n <- NROW(temp)
     temp$cold.1 <- c(NA, temp$cold[-n])
-    temp$aver.1 <- c(NA, temp$aver[-n])
+    temp$extemp.1 <- c(NA, temp$extemp[-n])
     temp$heat.1 <- c(NA, temp$heat[-n])
     ##
     temp

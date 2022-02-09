@@ -147,7 +147,7 @@ temp_ivl <- c(temp_start, temp_end)
 ##
 
 lagg <- 0 / 365 ##3 / 365  ## NOTE!!
-tempvars <-  c("heat", "heat.1", "aver", "aver.1", "cold", "cold.1", "emintemp", "emeantemp", "emaxtemp", 
+tempvars <-  c("heat", "heat.1", "extemp", "extemp.1", "cold", "cold.1", "emintemp", "emeantemp", "emaxtemp", 
                "week", "year") 
 ## Ume:
 bume <- per[per$subreg == "ume", ]

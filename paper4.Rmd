@@ -326,14 +326,14 @@ for that purpose.  Resulting data drame is partly shown in Table \@ref(tab:readd
 
 ```{r readdata3}
 levels(infdat$subreg) <- c("ume", "ske", "inland")
-##infdat$excessTemp <- cut(infdat$aver, c(-16, -2, 2, 9), include.lowest = TRUE) # NOTE!!!
+##infdat$excessTemp <- cut(infdat$extemp, c(-16, -2, 2, 9), include.lowest = TRUE) # NOTE!!!
 ##infdat$excessTemp <- relevel(infdat$excessTemp, ref = "(-2,2]")
-##infdat$lowTemp <- (infdat$aver + infdat$aver.1) < -10  # CHECK THIS!!
-##infdat$highTemp <- infdat$aver + infdat$aver.1 > 10
-##infdat$lowTemp <- with(infdat, (aver < -3) & (aver.1 < -3))
+##infdat$lowTemp <- (infdat$extemp + infdat$extemp.1) < -10  # CHECK THIS!!
+##infdat$highTemp <- infdat$extemp + infdat$extemp.1 > 10
+##infdat$lowTemp <- with(infdat, (extemp < -3) & (extemp.1 < -3))
 infdat$lowTemp <- (with(infdat, cold + cold.1 < -10))
-infdat$highTemp <- with(infdat, (aver > 3) & (aver.1 > 3))
-tbl(head(infdat[, c("enter", "exit", "event", "lowTemp", "highTemp", "aver", "emeantemp", "week", "year")]),
+infdat$highTemp <- with(infdat, (extemp > 3) & (extemp.1 > 3))
+tbl(head(infdat[, c("enter", "exit", "event", "lowTemp", "highTemp", "extemp", "emeantemp", "week", "year")]),
     caption = "Data with communal covariates.", fs = 9)
 ```
 
@@ -390,7 +390,7 @@ seen relative to actual *socBranch*. We have information on whether the infant w
 but we incorporate those cases in the category *none* of *socBranch* and *unknown* as category of *socStatus*.
 
 
-```{r joint, cache = TRUE}
+```{r managedata}
 library(survival)
 neo <- age.window(infdat, c(0, 28 / 365))
 neo$ageIvl <- "neo"
@@ -400,27 +400,32 @@ all <- rbind(neo, pneo)
 all$ageIvl <- factor(all$ageIvl)
 ##all$enter <- round(all$enter * 365)
 ##all$exit <- round(all$exit * 365)
-##fit.all <- coxph(Surv(enter, exit, event) ~ strata(ageIvl) * (aver + emeantemp + lowTemp + highTemp + socBranch + ##socStatus + sex + period),
+##fit.all <- coxph(Surv(enter, exit, event) ~ strata(ageIvl) * (extemp + emeantemp + lowTemp + highTemp + socBranch + ##socStatus + sex + period),
   ##               data = all)
 ##dr.all <- drop1(fit.all, test = "Chisq")
 
 inftab <- toTpch(Surv(enter, exit, event) ~ subreg + sex + period + socBranch + socStatus + parity + 
-                     aver + emeantemp + lowTemp + highTemp + summer + ageIvl, data = all,
+                     extemp + emeantemp + lowTemp + highTemp + summer + ageIvl, data = all,
                  cuts = c(0, 3, 7, 14, 28, 56, 84, 145, 207, 286, 365) / 365)
 tabneo <- inftab[inftab$ageIvl == "neo", ]
 tabpost <- inftab[inftab$ageIvl == "postneo", ]
 tabpost$age <- factor(tabpost$age)
 tabneo$age <- factor(tabneo$age)
-fit.all <- tpchreg(oe(event, exposure) ~  strata(ageIvl) * (aver + emeantemp + lowTemp + highTemp + socBranch + socStatus + sex + period) + emeantemp, data = inftab, time = age)
+```
+
+```{r joint}
+fit.all <- tpchreg(oe(event, exposure) ~  strata(ageIvl) * 
+                       (extemp + emeantemp + lowTemp + highTemp + socBranch + period), 
+                   data = inftab, time = age)
 dr.all <- drop1(fit.all, test = "Chisq")
-##system.time(tabneo.fit <- tpchreg(oe(event, exposure) ~ aver + emeantemp + highTemp + lowTemp + socBranch + socStatus, 
+##system.time(tabneo.fit <- tpchreg(oe(event, exposure) ~ extemp + emeantemp + highTemp + lowTemp + socBranch + socStatus, 
   ##               data = tabneo, time = age))
-##system.time(tabpost.fit <- tpchreg(oe(event, exposure) ~ aver + emeantemp + highTemp + lowTemp + socBranch + socStatus, 
+##system.time(tabpost.fit <- tpchreg(oe(event, exposure) ~ extemp + emeantemp + highTemp + lowTemp + socBranch + socStatus, 
   ##               data = tabpost, time = age))
 ```
 
 
-```{r shownonprop}
+```{r shownonprop, cache = FALSE}
 tbl(round(dr.all, 4), caption = "Proportionality tests, neonatal vs. postneonatal.", rownames = TRUE)
 ```
 
@@ -435,8 +440,8 @@ The analyses are split into two parts by season, *winter* is one, and *summer* t
 Summer covers the months April to September, and winter the rest of the months.
 
 ```{r formneo}
-formneo <- as.formula("oe(event, exposure) ~  lowTemp + highTemp + aver + emeantemp + 
-                     sex + subreg + parity + socStatus + period")
+formneo <- as.formula("oe(event, exposure) ~  lowTemp + highTemp + extemp + emeantemp + socBranch + period +
+                     subreg + sex + parity")
 ```
 
 ### Winter
@@ -444,18 +449,21 @@ formneo <- as.formula("oe(event, exposure) ~  lowTemp + highTemp + aver + emeant
 This period refers to the months *October to March*. A Cox regression involves as
 interesting variables *highTemp*, an indicator of temperature at least four degrees
 above the expected for at least two weeks in a row, *emeantemp* the expected temperature
-the actual weeek, and *aver* the *excess temperature* the actual week.
+the actual weeek, and *extemp* the *excess temperature* the actual week.
 
 
-```{r neoanalw, results = 'asis'}
+```{r neoanalwp, results = 'asis'}
 ##library(survival)
 winter <- tabneo[!tabneo$summer, ]
 ##winter$season <- factor(winter$season)
 ##neo$exit <- g(neo$exit * 365) # Skip the log-cube transformation
 ##neo$enter <- g(neo$enter * 365)
-fit.cr <- tpchreg(formneo, data = winter, time = age)
-dr <- drop1(fit.cr, test = "Chisq")
-ltx2(fit.cr, dr = dr, caption = "Neonatal mortality, October to March. Adjusted for social branch, sex, illegitimacy, parity, time period, and subregion.", 
+fit.neow <- tpchreg(formneo, data = winter, time = age)
+dr <- drop1(fit.neow, test = "Chisq")
+```
+
+```{r neoanalw, results = "asis", cache = FALSE}
+ltx2(fit.neow, dr = dr, caption = "Neonatal mortality, October to March. Adjusted for social branch, sex, illegitimacy, parity, time period, and subregion.", 
      label = "tab:neoanalw", keep = NULL)
 ```
 
@@ -464,18 +472,21 @@ ltx2(fit.cr, dr = dr, caption = "Neonatal mortality, October to March. Adjusted 
 This period refers to the months *April to September*. A Cox regression involves as
 interesting variables *highTemp*, an indicator of temperature at least four degrees
 above the expected for at least two weeks in a row, *emeantemp* the expected temperature
-the actual weeek, and *aver* the *excess temperature* the actual week.
+the actual weeek, and *extemp* the *excess temperature* the actual week.
 
 
-```{r neoanals, results = 'asis'}
+```{r neoanalsp}
 ##library(survival)
 #summer <- neo[neo$summer, ]
 ##summer$season <- factor(summer$season)
 ##neo$exit <- g(neo$exit * 365) # Skip the log-cube transformation
 ##neo$enter <- g(neo$enter * 365)
-fit.cr <- tpchreg(formneo, data = tabneo[tabneo$summer, ], time = age)
-dr <- drop1(fit.cr, test = "Chisq")
-ltx2(fit.cr, dr = dr, caption = "Neonatal mortality, April to September. Adjusted for social branch, sex, illegitimacy, parity, time period, and subregion.", 
+fit.neos <- tpchreg(formneo, data = tabneo[tabneo$summer, ], time = age)
+dr.neos <- drop1(fit.neos, test = "Chisq")
+```
+
+```{r neoanals, results = 'asis', cache = FALSE}
+ltx2(fit.neos, dr = dr.neos, caption = "Neonatal mortality, April to September. Adjusted for social branch, sex, illegitimacy, parity, time period, and subregion.", 
      label = "tab:neoanals", keep = NULL)
 ```
 
@@ -487,15 +498,19 @@ ltx2(fit.cr, dr = dr, caption = "Neonatal mortality, April to September. Adjuste
 ### Winter
 
 
-```{r postanalw, results='asis'}
-##tpneo <- toTpch(Surv(enter, exit, event) ~ lowTemp + highTemp + aver + emeantemp + sex + socBranch + illeg + parity
+```{r postanalwp, results='asis'}
+##tpneo <- toTpch(Surv(enter, exit, event) ~ lowTemp + highTemp + extemp + emeantemp + sex + socBranch + illeg + parity
   ##              + subreg + period, data = infdat, cuts = c(0, 1))
 ##winter <- gtpneo[gtpneo$summer == 0, ]
 ##winter$season <- factor(winter$season)
 
-fit.tpch <- tpchreg(oe(event, exposure) ~ period * (lowTemp + highTemp + aver + emeantemp) + sex + socBranch  + parity + subreg + period, data = tabpost[!tabpost$summer, ], time = age)
-dr <- drop1(fit.tpch, test = "Chisq")
-tbl(round(dr, 4), caption = "Interaction tests with period, postneonatal mortality.", rownames = TRUE)
+fit.postw <- tpchreg(oe(event, exposure) ~ period * (lowTemp + highTemp + extemp + emeantemp), 
+                     data = tabpost[!tabpost$summer, ], time = age)
+dr.postw <- drop1(fit.postw, test = "Chisq")
+```
+
+```{r postanalw, results='asis', cache = FALSE}
+tbl(round(dr.postw, 4), caption = "Interaction tests with temperature and period, postneonatal mortality.", rownames = TRUE)
 ##ltx2(fit.tpch, dr = dr, caption = "Postneonatal mortality, October to March. Adjusted for social branch, sex, ##illegitimacy, parity, time period, and subregion.", label = "tab:postanalw", keep = NULL)
 ```
 
@@ -503,36 +518,45 @@ The result in Table \@ref(tab:postanalw) shows that the temperature effects vary
 so we continue with seaparate analyses for the time periods `r levels(tabpost$period)`.
 
 ```{r setformw}
-form <- as.formula("oe(event, exposure) ~ lowTemp + highTemp + aver + emeantemp + sex + socStatus + parity + subreg")
+form <- as.formula("oe(event, exposure) ~ lowTemp + highTemp + extemp + emeantemp + socStatus + subreg + sex + parity")
 ```
 
 
 #### The time period 1895--1913
 
-```{r postw1, results = "asis"}
-fit.pw1 <- tpchreg(form, data = tabpost[(!tabpost$summer) & tabpost$period == "(1895,1914]", ], time = age)
-dr <- drop1(fit.pw1, test = "Chisq")
-ltx2(fit.pw1, dr = dr, caption = "Postneonatal mortality, October to March 1895-1914. Adjusted for social branch, sex, illegitimacy, parity, and subregion.", label = "tab:postw1", keep = NULL)
+```{r postw1p, results = "asis"}
+fit.postw1 <- tpchreg(form, data = tabpost[(!tabpost$summer) & tabpost$period == "(1895,1914]", ], time = age)
+dr.postw1 <- drop1(fit.postw1, test = "Chisq")
+```
+
+```{r postw1, results = "asis", cache = FALSE}
+ltx2(fit.postw1, dr = dr.postw1, caption = "Postneonatal mortality, October to March 1895-1914. Adjusted for social branch, sex, illegitimacy, parity, and subregion.", label = "tab:postw1", keep = NULL)
 ```
 
 Table \@ref(tab:postw1) shows that
 
 #### The time period 1914--1934
 
-```{r postw2, results = "asis"}
-fit.pw2 <- tpchreg(form, data = tabpost[(!tabpost$summer) & tabpost$period == "(1914,1935]", ], time = age)
-dr2 <- drop1(fit.pw2, test = "Chisq")
-ltx2(fit.pw2, dr = dr2, caption = "Postneonatal mortality, October to March 1914-1934. Adjusted for social branch, sex, illegitimacy, parity, and subregion.", label = "tab:postw2", keep = NULL)
+```{r postw2p, results = "asis"}
+fit.postw2 <- tpchreg(form, data = tabpost[(!tabpost$summer) & tabpost$period == "(1914,1935]", ], time = age)
+dr.postw2 <- drop1(fit.postw2, test = "Chisq")
+```
+
+```{r postw2, results = "asis", cache = FALSE}
+ltx2(fit.postw2, dr = dr.postw2, caption = "Postneonatal mortality, October to March 1914-1934. Adjusted for social branch, sex, illegitimacy, parity, and subregion.", label = "tab:postw2", keep = NULL)
 ```
 
 Table \@ref(tab:postw2) shows that
 
 #### The time period 1935--1950
 
-```{r postw3, results = "asis"}
-fit.pw3 <- tpchreg(form, data = tabpost[(!tabpost$summer) & tabpost$period == "(1935,1951]", ], time = age)
-dr3 <- drop1(fit.pw3, test = "Chisq")
-ltx2(fit.pw3, dr = dr3, caption = "Postneonatal mortality, October to March 1935-1950. Adjusted for social branch, sex, illegitimacy, parity, and subregion.", label = "tab:postw3", keep = NULL)
+```{r postw3p, results = "asis"}
+fit.postw3 <- tpchreg(form, data = tabpost[(!tabpost$summer) & tabpost$period == "(1935,1951]", ], time = age)
+dr.postw3 <- drop1(fit.postw3, test = "Chisq")
+```
+
+```{r postw3, results = "asis", cache = FALSE}
+ltx2(fit.postw3, dr = dr.postw3, caption = "Postneonatal mortality, October to March 1935-1950. Adjusted for social branch, sex, illegitimacy, parity, and subregion.", label = "tab:postw3", keep = NULL)
 ```
 
 Table \@ref(tab:postw3) shows that
@@ -541,15 +565,19 @@ Table \@ref(tab:postw3) shows that
 ### Summer
 
 
-```{r postanals, results='asis'}
+```{r postanalsp, results='asis'}
 ##summer <- gtpneo[gtpneo$summer == 1, ]
 ##winter$season <- factor(winter$season)
 
-fit.tpch <- tpchreg(oe(event, exposure) ~ lowTemp + highTemp + aver + emeantemp + sex + socBranch  + 
-                        parity + subreg + period, 
+fit.posts <- tpchreg(oe(event, exposure) ~ lowTemp + highTemp + extemp + emeantemp + socBranch + period + 
+                        subreg + parity + sex, 
                     data = tabpost[tabpost$summer, ], time = age)
-dr <- drop1(fit.tpch, test = "Chisq")
-ltx2(fit.tpch, dr = dr, caption = "Postneonatal mortality, April to September. Adjusted for social branch, sex, illegitimacy, parity, time period, and subregion.", label = "tab:postanals", keep = NULL)
+dr <- drop1(fit.posts, test = "Chisq")
+```
+
+
+```{r postanals, results='asis', cache = FALSE}
+ltx2(fit.posts, dr = dr, caption = "Postneonatal mortality, April to September. Adjusted for social branch, sex, illegitimacy, parity, time period, and subregion.", label = "tab:postanals", keep = NULL)
 ```
 
 The result in Table \@ref(tab:postanals) shows that *climate* (`emintemp`) is more important than 
