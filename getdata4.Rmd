@@ -105,7 +105,7 @@ per$socStatus[is.na(per$socStatus)] <- "low"
 per$socStatus <- factor(per$socStatus)
 per <- per[, c("id", "sex", "birthdate", "mid", "foddat", "parity", "illeg", 
                "subreg", "socBranch", "socStatus", "hisclass", "enter", "exit", "event")]
-#saveRDS(per, file = "data/infdat3.rds")
+saveRDS(per, file = "data/births4.rds")
 ```
 
 # Temperature data

@@ -30,7 +30,7 @@ header-includes:
 - \usepackage{a4wide}
 - \usepackage[tablesonly]{endfloat}
 - \renewcommand{\efloatseparator}{\mbox{}}
-abstract: "The effect of extreme temperatures on infant mortality in the Umeå and Skellefteå regions 1895-1950 is studied in a biometric analysis setting. More precisely, the effect of climate and weather, measured by temperature, average and extremes, on infant mortality is investigated. It turns out that climate (average) is more important than weather (extremes), low average temperatures are more important than temporary dips in temperature."
+abstract: "The effect of extreme temperatures on infant mortality in the Umeå and Skellefteå regions 1895-1950 is studied in a biometric analysis setting. More precisely, the effect of climate and weather, measured by temperature, average and extremes, on infant mortality is investigated. It turns out that climate (average) is more important than weather (extremes), low average temperatures are more important than temporary dips in temperature, but effects are different in neonatal and postneonatal settings."
 ---
 
 
@@ -40,6 +40,7 @@ knitr::opts_knit$set(global.par = TRUE)
 ##
 library(knitr)
 library(eha)
+starttid <- proc.time()
 ```
 
 ```{r setpar}
@@ -47,7 +48,7 @@ par(las = 1, cex.axis = 0.8, cex.lab = 0.8, cex = 0.8)
 ```
 
 ```{r readdata}
-births <- readRDS("data/births.rds")
+births <- readRDS("data/births4.rds")
 infdat  <- readRDS("data/infdat4.rds")
 ```
 # Introduction
@@ -588,3 +589,13 @@ covariates (not shown).
 # Conclusion
 
 Remains to be written, especially the discussion about temperature and mortality. 
+
+Used processing time (seconds):
+
+```{r tidtagning}
+sluttid <- Sys.time()
+proc.time() - starttid
+```
+
+
+Done: `r sluttid`.
