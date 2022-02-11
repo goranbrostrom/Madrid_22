@@ -8,7 +8,7 @@ output:
     keep_tex: yes
     number_sections: yes
     toc: yes
-    toc_depth: 3
+    toc_depth: 4
   bookdown::word_document2:
     toc: no
     toc_depth: 2
@@ -485,6 +485,19 @@ ltx2(fit.neow, dr = dr, caption = "Neonatal mortality, October to March.",
      label = "tab:neoanalw", keep = 6)
 ```
 
+#### Temperature and sex
+
+We check the interaction between temperature and sex and period.
+
+```{r neosexper}
+fit <- tpchreg(oe(event, exposure) ~ sex * (extemp + extemp.1 + emeantemp), 
+               time = age, data = winter)
+dr <- drop1(fit, test = "Chisq")
+dr
+```
+
+Obviously no temperature and sex interactions
+
 ### Summer
 
 This period refers to the months *April to September*. A Cox regression involves as
@@ -518,6 +531,16 @@ form.sr <- as.formula("oe(event, exposure) ~ (extemp + extemp.1 + emeantemp) * s
 tabpost <- readRDS("data/tabpost.rds")
 ```
 
+#### By birth month
+
+```{r bybmonth, fig.cap = "Crude postneonatal relative (to January = 1) mortality by birth month.", cache = TRUE}
+pn <- age.window(infdat, c(28/365, 1))
+fit <- coxreg(Surv(enter, exit, event) ~ as.factor(birthmonth), data = pn)
+plot(exp(c(0, coef(fit))), type = "b", xlab = "Birth month", ylab = "Hazard ratios",
+     col = "blue")
+abline(h = 1)
+```
+
 
 ### Winter
 
@@ -544,7 +567,28 @@ This shows that the temperature effects do not vary much with time period,
 but we continue with separate analyses for the time periods `r levels(tabpost$period)`. Just
 to make sure, will be joined when appropriate.
 
+#### Sex and temperature
 
+
+```{r postanalwpsex, results='asis', cache = TRUE}
+##tpneo <- toTpch(Surv(enter, exit, event) ~ lowTemp + highTemp + extemp + emeantemp + sex + socBranch + illeg + parity
+  ##              + subreg + period, data = infdat, cuts = c(0, 1))
+##winter <- gtpneo[gtpneo$summer == 0, ]
+##winter$season <- factor(winter$season)
+
+fit.postwsex <- tpchreg(oe(event, exposure) ~ sex * (extemp + extemp.1 + emeantemp), 
+                     data = tabpost[!tabpost$summer, ], time = age)
+dr.postwsex <- drop1(fit.postwsex, test = "Chisq")
+```
+
+Interaction tests with temperature and sex, postneonatal mortality:
+
+```{r postanalwsex, cache = FALSE}
+round(dr.postwsex, 4)
+#tbl(round(dr.postw, 4), caption = "Interaction tests with temperature and period, postneonatal ##mortality.", rownames = TRUE)
+```
+
+Obviously no interactions between temperature and sex.
 
 #### The time period 1895--1913
 
