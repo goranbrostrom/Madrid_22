@@ -112,7 +112,7 @@ tid <- toTpch(Surv(enter, exit, event) ~ week, data = infdat, cuts = c(0, 1))
 y <- tid$event / tid$exposure
 par(las = 1, cex.axis = 0.7, cex.lab = 0.7)
 plot(1:52, y, type = "b", col = "blue", axes = FALSE, ylim = c(0, max(y)),
-     xlab = "Week", ylab = "IMR", cex = 0.7, lwd = 1.5)
+     xlab = "Week", ylab = "O/E rate", cex = 0.7, lwd = 1.5)
 axis(1, at = c(1, 10, 20, 30, 40, 52))
 axis(2, las = 1, at = c(0, 0.03, 0.06, 0.09))
 abline(h = c(0.05, 0.07, 0.09, 0.11), lty = 3)
@@ -129,7 +129,7 @@ y <- tneo$event / tneo$exposure
 par(cex.axis = 0.7)
 par(las = 1, cex.axis = 0.7, cex.lab = 0.7)
 plot(1:52, y, type = "b", col = "blue", axes = FALSE, ylim = c(0, max(y)),
-     xlab = "Week", ylab = "NMR", cex = 0.7, lwd = 1.5)
+     xlab = "Week", ylab = "O/E rate", cex = 0.7, lwd = 1.5)
 axis(1, at = c(1, 10, 20, 30, 40, 52))
 axis(2, las = 1, at = c(0, 0.2, 0.4, 0.6))
 abline(h = c(0.3, 0.4, 0.5, 0.6), lty = 3)
@@ -147,7 +147,7 @@ tpneo <- toTpch(Surv(enter, exit, event) ~ week, data = pneo, cuts = c(28 / 365,
 y <- tpneo$event / tpneo$exposure
 par(las = 1, cex.axis = 0.7, cex.lab = 0.7)
 plot(1:52, y, type = "b", col = "blue", axes = FALSE, ylim = c(0, max(y)),
-     xlab = "Week", ylab = "PNMR", cex = 0.7, lwd = 1.5)
+     xlab = "Week", ylab = "O/E rate", cex = 0.7, lwd = 1.5)
 axis(1, at = c(1, 10, 20, 30, 40, 52))
 axis(2, at = c(0, 0.02, 0.04, 0.06), las = 1)
 abline(h = c(0.03, 0.04, 0.05, 0.06, 0.07), lty = 3)
@@ -164,7 +164,7 @@ y <- trend$event / trend$exposure
 par(las = 1)
 par(las = 1, cex.axis = 0.7, cex.lab = 0.7)
 plot(1895:1951, y, type = "b", col = "blue", ylim = c(0, max(y)), xlab = "Year",
-     ylab = "IMR", lwd = 1.5, cex = 0.7)
+     ylab = "O/E rate", lwd = 1.5, cex = 0.7)
 abline(h = c(0.05, 0.1, 0.15), lty = 3)
 abline(h = 0)
 ```
@@ -177,7 +177,20 @@ y <- tnda$event / tnda$exposure
 par(las = 1)
 par(las = 1, cex.axis = 0.7, cex.lab = 0.7)
 plot(1895:1951, y, type = "b", col = "blue", ylim = c(0, max(y)), xlab = "Year",
-     ylab = "NMR", lwd = 1.5, cex = 0.7)
+     ylab = "O/E rate", lwd = 1.5, cex = 0.7)
+abline(h = 0)
+abline(h = c(0.2, 0.4, 0.6), lty = 3)
+```
+
+```{r pntrend, fig.cap = "Crude postneonatal mortality by year, Umeå-Skellefteå 1895--1950.", fig.height = 4, cache = TRUE}
+pndat <- age.window(infdat, c(28 / 365, 1))
+tpnda <- toTpch(Surv(enter, exit, event) ~ year, data = pndat, 
+                cuts = c(28 / 365, 1))
+y <- tpnda$event / tpnda$exposure
+par(las = 1)
+par(las = 1, cex.axis = 0.7, cex.lab = 0.7)
+plot(1895:1951, y, type = "b", col = "blue", ylim = c(0, max(y)), xlab = "Year",
+     ylab = "O/E rate", lwd = 1.5, cex = 0.7)
 abline(h = 0)
 abline(h = c(0.2, 0.4, 0.6), lty = 3)
 ```
@@ -338,7 +351,7 @@ levels(infdat$subreg) <- c("ume", "ske", "inland")
 ##infdat$lowTemp <- with(infdat, (extemp < -3) & (extemp.1 < -3))
 infdat$lowTemp <- (with(infdat, cold + cold.1 < -10))
 infdat$highTemp <- with(infdat, (extemp > 3) & (extemp.1 > 3))
-tbl(head(infdat[, c("enter", "exit", "event", "lowTemp", "highTemp", "extemp", "emeantemp", "week", "year")]),
+tbl(head(infdat[, c("enter", "exit", "event", "extemp", "extemp.1", "emeantemp", "week", "year")]),
     caption = "Data with communal covariates.", fs = 9)
 ```
 
@@ -351,7 +364,7 @@ and extremely high temperature (`highTemp`) is bad during summer, but good other
 So we group season into two categories, *summer* and *not summer*.
 In each case separate analyses for neonatal and postneonatal mortality are performed. 
 
-The *summer* half-year is the weeks 14--39, about 1 April to 30 September, and the *winter*
+The *summer* half-year consists of the weeks 14--39, about 1 April to 30 September, and the *winter*
 half-year is the rest, weeks 1-13 and 40--52, 1 January to 31 March and 1 October to 31 December.
 This is the division made in @karlsson, and we keep it for comparability reasons.
 
@@ -482,7 +495,7 @@ dr <- drop1(fit.neow, test = "Chisq")
 
 ```{r neoanalw, results = "asis", cache = FALSE}
 ltx2(fit.neow, dr = dr, caption = "Neonatal mortality, October to March.", 
-     label = "tab:neoanalw", keep = 6)
+     label = "tab:neoanalw", keep = 3)
 ```
 
 #### Temperature and sex
@@ -518,7 +531,7 @@ dr.neos <- drop1(fit.neos, test = "Chisq")
 
 ```{r neoanals, results = 'asis', cache = FALSE}
 ltx2(fit.neos, dr = dr.neos, caption = "Neonatal mortality, April to September.", 
-     label = "tab:neoanals", keep = 6)
+     label = "tab:neoanals", keep = 3)
 ```
 
 
@@ -532,6 +545,8 @@ tabpost <- readRDS("data/tabpost.rds")
 ```
 
 #### By birth month
+
+See Figure \@ref(fig:bybmonth).
 
 ```{r bybmonth, fig.cap = "Crude postneonatal relative (to January = 1) mortality by birth month.", cache = TRUE}
 pn <- age.window(infdat, c(28/365, 1))
@@ -598,8 +613,8 @@ dr.postw1 <- drop1(fit.postw1, test = "Chisq")
 ```
 
 ```{r postw1, results = "asis", cache = FALSE}
-ltx2(fit.postw1, dr = dr.postw1, caption = "Postneonatal mortality, October to March 1895-1914. Adjusted for sex and parity.", 
-     label = "tab:postw1", keep = 5)
+ltx2(fit.postw1, dr = dr.postw1, caption = "Postneonatal mortality, October to March 1895-1914.", 
+     label = "tab:postw1", keep = NULL)
 ```
 
 Table \@ref(tab:postw1) shows that the effects of  extreme temperatures have the expected directions, extra high temperatures is *positive* 
@@ -618,7 +633,7 @@ dr.postw1sru <- drop1(fit.postw1sru, test = "Chisq")
 
 ```{r postw1sru, results = "asis"}
 ltx2(fit.postw1sru, dr = dr.postw1sru, caption = "Postneonatal mortality, Umeå, October to March 1895-1913.",
-     label = "tab:postw1sru", keep = 4)
+     label = "tab:postw1sru", keep = 3)
 ```
 
 ```{r postw1srps, cache = TRUE}
@@ -629,7 +644,7 @@ dr.postw1srs <- drop1(fit.postw1srs, test = "Chisq")
 
 ```{r postw1srs, results = "asis"}
 ltx2(fit.postw1srs, dr = dr.postw1srs, caption = "Postneonatal mortality, Skellefteå with inland, October to March 1895-1913.", 
-     label = "tab:postw1srs", keep = 4)
+     label = "tab:postw1srs", keep = 3)
 ```
 
 We can conclude from Tables \@ref(tab:postw1sru) and \@ref(tab:postw1srs) that the main difference between Umeå and Skellefteå is that
@@ -644,7 +659,7 @@ dr.postw2 <- drop1(fit.postw2, test = "Chisq")
 ```
 
 ```{r postw2, results = "asis", cache = FALSE}
-ltx2(fit.postw2, dr = dr.postw2, caption = "Postneonatal mortality, October to March 1914-1934. Adjusted for sex, parity, and subregion.", label = "tab:postw2", keep = 5)
+ltx2(fit.postw2, dr = dr.postw2, caption = "Postneonatal mortality, October to March 1914-1934. Adjusted for sex, parity, and subregion.", label = "tab:postw2", keep = 3)
 ```
 
 Table \@ref(tab:postw2) shows that the weather effect is lagged one week (*extemp.1*), and that climate continues to be very important.
@@ -658,7 +673,7 @@ dr.postw2sru <- drop1(fit.postw2sru, test = "Chisq")
 
 ```{r postw2sru, results = "asis"}
 ltx2(fit.postw2sru, dr = dr.postw2sru, caption = "Postneonatal mortality, Umeå, October to March 1914-1934.",
-     label = "tab:postw2sru", keep = 4)
+     label = "tab:postw2sru", keep = 3)
 ```
 
 ```{r postw2srps, cache = TRUE}
@@ -669,7 +684,7 @@ dr.postw2srs <- drop1(fit.postw2srs, test = "Chisq")
 
 ```{r postw2srs, results = "asis"}
 ltx2(fit.postw2srs, dr = dr.postw2srs, caption = "Postneonatal mortality, Skellefteå with inland, October to March 1914-1934.", 
-     label = "tab:postw2srs", keep = 4)
+     label = "tab:postw2srs", keep = 3)
 ```
 
 
@@ -686,7 +701,7 @@ dr.postw3 <- drop1(fit.postw3, test = "Chisq")
 ```
 
 ```{r postw3, results = "asis", cache = FALSE}
-ltx2(fit.postw3, dr = dr.postw3, caption = "Postneonatal mortality, October to March 1935-1950. Adjusted for sex, parity, and subregion.", label = "tab:postw3", keep = 5)
+ltx2(fit.postw3, dr = dr.postw3, caption = "Postneonatal mortality, October to March 1935-1950. Adjusted for sex, parity, and subregion.", label = "tab:postw3", keep = 3)
 ```
 
 Table \@ref(tab:postw3) shows that
@@ -699,7 +714,7 @@ dr.postw3sru <- drop1(fit.postw3sru, test = "Chisq")
 
 ```{r postw3sru, results = "asis"}
 ltx2(fit.postw3sru, dr = dr.postw3sru, caption = "Postneonatal mortality, Umeå, October to March 1935-1950.",
-     label = "tab:postw3sru", keep = 4)
+     label = "tab:postw3sru", keep = 3)
 ```
 
 ```{r postw3srps, cache = TRUE}
@@ -710,7 +725,7 @@ dr.postw3srs <- drop1(fit.postw3srs, test = "Chisq")
 
 ```{r postw3srs, results = "asis"}
 ltx2(fit.postw3srs, dr = dr.postw3srs, caption = "Postneonatal mortality, Skellefteå with inland, October to March 1895-1913.", 
-     label = "tab:postw3srs", keep = 4)
+     label = "tab:postw3srs", keep = 3)
 ```
 
 ### Summer
@@ -728,7 +743,7 @@ dr <- drop1(fit.posts, test = "Chisq")
 
 
 ```{r postanals, results='asis', cache = FALSE}
-ltx2(fit.posts, dr = dr, caption = "Postneonatal mortality, April to September. Adjusted for sex, parity, time period, and subregion.", label = "tab:postanals", keep = 5)
+ltx2(fit.posts, dr = dr, caption = "Postneonatal mortality, April to September. Adjusted for sex, parity, time period, and subregion.", label = "tab:postanals", keep = 3)
 ```
 
 The result in Table \@ref(tab:postanals) shows that *climate* (`emeantemp`) is more important than 
