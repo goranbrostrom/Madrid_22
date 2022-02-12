@@ -15,6 +15,8 @@ age.cuts = c(0, 3, 7, 28, 56, 140, 183, 250, 365) / 365
 
 # Introduction
 
+Added *urban* on 12 February 2022.
+
 Created 6 February 2022 after consultations.
 
 ** Run this (and only this) before running "paper4.Rmd"!**
@@ -31,6 +33,7 @@ eha::make.communal assumes age is measured in *years*. But this is no promise ye
 
 ```{r readpers}
 per <- pers[(pers$frsbobtyp == 2) & (pers$df == 0), ]
+per$urban <- per$fboort %in% c(274, 1208)
 per$frsbobtyp <- per$df <- per$f2id <- per$m2id <- NULL
 per$frsbobdatmin <- per$frsbobdatmax <- per$utdatmax <- per$utdatmin <- NULL
 per <- per[(per$foddat > 18950000), ]
@@ -104,7 +107,7 @@ per$socStatus <- as.character(per$socStatus)
 per$socStatus[is.na(per$socStatus)] <- "low"
 per$socStatus <- factor(per$socStatus)
 per <- per[, c("id", "sex", "birthdate", "mid", "foddat", "parity", "illeg", 
-               "subreg", "socBranch", "socStatus", "hisclass", "enter", "exit", "event")]
+               "subreg", "socBranch", "socStatus", "hisclass", "urban", "enter", "exit", "event")]
 saveRDS(per, file = "data/births4.rds")
 ```
 
@@ -173,7 +176,7 @@ infdat$birthmonth <- ceiling((infdat$birthdate - floor(infdat$birthdate)) * 12)
 infdat$period <- cut(infdat$birthdate, c(1895, 1914, 1935, 1951), dig.lab = 5)
 infdat <- infdat[order(infdat$id, infdat$enter), c("subreg", "id", "sex", "enter", "exit", "event", 
                                                    "birthmonth", "period", "socBranch", "socStatus", "illeg",
-                                                   "parity", "hisclass", tempvars)]
+                                                   "parity", "hisclass", "urban", tempvars)]
 ## New addition: (28 Jan 2022)
 ##infdat <- rc(infdat) # rc from 'skum'
 ##n <- NROW(infdat)
