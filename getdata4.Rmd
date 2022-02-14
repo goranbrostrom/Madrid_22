@@ -15,6 +15,8 @@ age.cuts = c(0, 3, 7, 28, 56, 140, 183, 250, 365) / 365
 
 # Introduction
 
+Add *socst* on 13 February 2022.
+
 Added *urban* on 12 February 2022.
 
 Created 6 February 2022 after consultations.
@@ -78,6 +80,10 @@ Now we need *nofrs* for newborn, found in the *observation* file(s), so
 ```{r fromobs}
 bobs <- obs[obs$starttyp == 2 & obs$id %in% per$id, ]
 indx <- match(per$id, bobs$id)
+per$socst <- bobs$socst[indx]
+per$socst[is.na(per$socst)] <- 0
+per$socst <- factor(per$socst, labels = c("none", "highBusiness", "highOfficial", "farmer", "lowBusiness",
+                                          "lowOfficial", "qualWorker", "farmhand", "unqualWorker"))
 per$socStatus <- bobs$socStatus[indx]
 per$socBranch <- bobs$socBranch[indx]
 per$hisclass <- bobs$hisclass[indx]
@@ -106,7 +112,7 @@ per$socBranch <- factor(per$socBranch)
 per$socStatus <- as.character(per$socStatus)
 per$socStatus[is.na(per$socStatus)] <- "low"
 per$socStatus <- factor(per$socStatus)
-per <- per[, c("id", "sex", "birthdate", "mid", "foddat", "parity", "illeg", 
+per <- per[, c("id", "sex", "birthdate", "mid", "foddat", "parity", "illeg", "socst",
                "subreg", "socBranch", "socStatus", "hisclass", "urban", "enter", "exit", "event")]
 saveRDS(per, file = "data/births4.rds")
 ```
@@ -175,7 +181,7 @@ infdat <- rbind(bume, bskel, bsten)
 infdat$birthmonth <- ceiling((infdat$birthdate - floor(infdat$birthdate)) * 12)
 infdat$period <- cut(infdat$birthdate, c(1895, 1914, 1935, 1951), dig.lab = 5)
 infdat <- infdat[order(infdat$id, infdat$enter), c("subreg", "id", "sex", "enter", "exit", "event", 
-                                                   "birthmonth", "period", "socBranch", "socStatus", "illeg",
+                                                   "birthmonth", "period", "socBranch", "socStatus", "socst", "illeg",
                                                    "parity", "hisclass", "urban", tempvars)]
 ## New addition: (28 Jan 2022)
 ##infdat <- rc(infdat) # rc from 'skum'
@@ -187,4 +193,4 @@ saveRDS(infdat, file = "data/infdat4.rds") # NOTE: Name change!!!
 ## tabdat4 <- toTpch(Surv(enter, exit, event) ~ subreg + sex + birthmonth + socBranch + illeg + parity 
 ```
 
-Note the name change of the data file: *infdat3.rds*! And the the time lag is `r lagg`.
+Note the name change of the data file: *infdat4.rds*! And the the time lag is `r lagg`.

@@ -424,7 +424,7 @@ if (!(file.exists("data/inftab.rds") && file.exists("data/tabneo.rds") && file.e
     ##               data = all)
     ##dr.all <- drop1(fit.all, test = "Chisq")
     
-    inftab <- toTpch(Surv(enter, exit, event) ~ subreg + sex + period + socBranch + socStatus + urban + parity + 
+    inftab <- toTpch(Surv(enter, exit, event) ~ subreg + sex + period + socst + urban + parity + 
                          extemp + extemp.1 + emeantemp + summer + ageIvl, data = all,
                      cuts = c(0, 3, 7, 14, 28, 56, 84, 145, 207, 286, 365) / 365)
     tabneo <- inftab[inftab$ageIvl == "neo", ]
@@ -441,12 +441,12 @@ if (!(file.exists("data/inftab.rds") && file.exists("data/tabneo.rds") && file.e
 
 ```{r joint, cache = TRUE}
 fit.all <- tpchreg(oe(event, exposure) ~  strata(ageIvl) * 
-                       (extemp + extemp.1 + emeantemp + socBranch + socStatus + period + urban), 
+                       (extemp + extemp.1 + emeantemp + socst + period + urban), 
                    data = inftab, time = age)
 dr.all <- drop1(fit.all, test = "Chisq")
-##system.time(tabneo.fit <- tpchreg(oe(event, exposure) ~ extemp + emeantemp + highTemp + lowTemp + socBranch + socStatus, 
+##system.time(tabneo.fit <- tpchreg(oe(event, exposure) ~ extemp + emeantemp + highTemp + lowTemp + socst, 
   ##               data = tabneo, time = age))
-##system.time(tabpost.fit <- tpchreg(oe(event, exposure) ~ extemp + emeantemp + highTemp + lowTemp + socBranch + socStatus, 
+##system.time(tabpost.fit <- tpchreg(oe(event, exposure) ~ extemp + emeantemp + highTemp + lowTemp + socst, 
   ##               data = tabpost, time = age))
 ```
 
@@ -471,7 +471,7 @@ The analyses are split into two parts by season, *winter* is one, and *summer* t
 Summer covers the months April to September, and winter the rest of the months.
 
 ```{r formneo}
-formneo <- as.formula("oe(event, exposure) ~  extemp + extemp.1 + emeantemp + socBranch + socStatus + period + urban +
+formneo <- as.formula("oe(event, exposure) ~  extemp + extemp.1 + emeantemp + socst + period + urban +
                      subreg + sex + parity")
 tabneo <- readRDS("data/tabneo.rds")
 ```
@@ -540,9 +540,9 @@ ltx2(fit.neos, dr = dr.neos, caption = "Neonatal mortality, April to September."
 ## Postneonatal mortality
 
 ```{r setformw}
-form <- as.formula("oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socBranch + socStatus + urban + subreg + sex + parity")
-form.sb <-  as.formula("oe(event, exposure) ~ (extemp + extemp.1 + emeantemp) * socBranch + socStatus + urban + subreg + sex + parity")
-form.sr <- as.formula("oe(event, exposure) ~ (extemp + extemp.1 + emeantemp) * subreg + socBranch + socStatus + urban + sex + parity") 
+form <- as.formula("oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socst + urban + subreg + sex + parity")
+form.sb <-  as.formula("oe(event, exposure) ~ (extemp + extemp.1 + emeantemp) * socst + urban + subreg + sex + parity")
+form.sr <- as.formula("oe(event, exposure) ~ (extemp + extemp.1 + emeantemp) * subreg + socst + urban + sex + parity") 
 tabpost <- readRDS("data/tabpost.rds")
 ```
 
@@ -563,7 +563,7 @@ abline(h = 1)
 
 
 ```{r postanalwp, results='asis', cache = TRUE}
-##tpneo <- toTpch(Surv(enter, exit, event) ~ lowTemp + highTemp + extemp + emeantemp + sex + socBranch + socStatus + illeg + parity
+##tpneo <- toTpch(Surv(enter, exit, event) ~ lowTemp + highTemp + extemp + emeantemp + sex + socst + illeg + parity
   ##              + subreg + period, data = infdat, cuts = c(0, 1))
 ##winter <- gtpneo[gtpneo$summer == 0, ]
 ##winter$season <- factor(winter$season)
@@ -588,7 +588,7 @@ to make sure, will be joined when appropriate.
 
 
 ```{r postanalwpsex, results='asis', cache = TRUE}
-##tpneo <- toTpch(Surv(enter, exit, event) ~ lowTemp + highTemp + extemp + emeantemp + sex + socBranch + socStatus + illeg + parity
+##tpneo <- toTpch(Surv(enter, exit, event) ~ lowTemp + highTemp + extemp + emeantemp + sex + socst + illeg + parity
   ##              + subreg + period, data = infdat, cuts = c(0, 1))
 ##winter <- gtpneo[gtpneo$summer == 0, ]
 ##winter$season <- factor(winter$season)
@@ -628,7 +628,7 @@ The importance of social class (socBranch) in explaining the effects of climate 
 the regions regarding *climate*: 
 
 ```{r postw1srpu, cache = TRUE}
-fit.postw1sru <- tpchreg(oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socBranch + socStatus + urban + sex + parity, 
+fit.postw1sru <- tpchreg(oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socst + urban + sex + parity, 
                         data = tabpost[(!tabpost$summer) & tabpost$period == "(1895,1914]" & tabpost$subreg == "ume", ], time = age)
 dr.postw1sru <- drop1(fit.postw1sru, test = "Chisq")
 ```
@@ -639,7 +639,7 @@ ltx2(fit.postw1sru, dr = dr.postw1sru, caption = "Postneonatal mortality, Umeå,
 ```
 
 ```{r postw1srps, cache = TRUE}
-fit.postw1srs <- tpchreg(oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socBranch + socStatus + urban + sex + parity, 
+fit.postw1srs <- tpchreg(oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socst + urban + sex + parity, 
                         data = tabpost[(!tabpost$summer) & tabpost$period == "(1895,1914]" & tabpost$subreg != "ume", ], time = age)
 dr.postw1srs <- drop1(fit.postw1srs, test = "Chisq")
 ```
@@ -668,7 +668,7 @@ Table \@ref(tab:postw2) shows that the weather effect is lagged one week (*extem
 Let's look at regional differences.
 
 ```{r postw2srpu, cache = TRUE}
-fit.postw2sru <- tpchreg(oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socBranch + socStatus + urban + sex + parity, 
+fit.postw2sru <- tpchreg(oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socst + urban + sex + parity, 
                         data = tabpost[(!tabpost$summer) & tabpost$period == "(1914,1935]" & tabpost$subreg == "ume", ], time = age)
 dr.postw2sru <- drop1(fit.postw2sru, test = "Chisq")
 ```
@@ -679,7 +679,7 @@ ltx2(fit.postw2sru, dr = dr.postw2sru, caption = "Postneonatal mortality, Umeå,
 ```
 
 ```{r postw2srps, cache = TRUE}
-fit.postw2srs <- tpchreg(oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socBranch + socStatus + urban + sex + parity, 
+fit.postw2srs <- tpchreg(oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socst + urban + sex + parity, 
                         data = tabpost[(!tabpost$summer) & tabpost$period == "(1914,1935]" & tabpost$subreg != "ume", ], time = age)
 dr.postw2srs <- drop1(fit.postw2srs, test = "Chisq")
 ```
@@ -696,7 +696,7 @@ ltx2(fit.postw2srs, dr = dr.postw2srs, caption = "Postneonatal mortality, Skelle
 #### The time period 1935--1950
 
 ```{r postw3p, results = "asis"}
-fit.postw3 <- tpchreg(oe(event, exposure) ~ extemp.1 + emeantemp + socBranch + socStatus + urban + subreg + sex + parity, 
+fit.postw3 <- tpchreg(oe(event, exposure) ~ extemp.1 + emeantemp + socst + urban + subreg + sex + parity, 
                       data = tabpost[(!tabpost$summer) & tabpost$period == "(1935,1951]", ], time = age)
 ##fit.postw3 <- tpchreg(form, data = tabpost[(!tabpost$summer) & tabpost$period == "(1935,1951]", ], time = age)
 dr.postw3 <- drop1(fit.postw3, test = "Chisq")
@@ -709,7 +709,7 @@ ltx2(fit.postw3, dr = dr.postw3, caption = "Postneonatal mortality, October to M
 Table \@ref(tab:postw3) shows that
 
 ```{r postw3srpu, cache = TRUE}
-fit.postw3sru <- tpchreg(oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socBranch + socStatus + urban + sex + parity, 
+fit.postw3sru <- tpchreg(oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socst + urban + sex + parity, 
                         data = tabpost[(!tabpost$summer) & tabpost$period == "(1935,1951]" & tabpost$subreg == "ume", ], time = age)
 dr.postw3sru <- drop1(fit.postw3sru, test = "Chisq")
 ```
@@ -720,7 +720,7 @@ ltx2(fit.postw3sru, dr = dr.postw3sru, caption = "Postneonatal mortality, Umeå,
 ```
 
 ```{r postw3srps, cache = TRUE}
-fit.postw3srs <- tpchreg(oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socBranch + socStatus + urban + sex + parity, 
+fit.postw3srs <- tpchreg(oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socst + urban + sex + parity, 
                         data = tabpost[(!tabpost$summer) & tabpost$period == "(1935,1951]" & tabpost$subreg != "ume", ], time = age)
 dr.postw3srs <- drop1(fit.postw3srs, test = "Chisq")
 ```
@@ -737,7 +737,7 @@ ltx2(fit.postw3srs, dr = dr.postw3srs, caption = "Postneonatal mortality, Skelle
 ##summer <- gtpneo[gtpneo$summer == 1, ]
 ##winter$season <- factor(winter$season)
 
-fit.posts <- tpchreg(oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socBranch + socStatus + urban + period + 
+fit.posts <- tpchreg(oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socst + urban + period + 
                         subreg + parity + sex, 
                     data = tabpost[tabpost$summer, ], time = age)
 dr <- drop1(fit.posts, test = "Chisq")
