@@ -380,7 +380,6 @@ infdat$parity <- cut(infdat$parity, c(-2, 1.5, 4.5, 19), labels = c("1", "2-4", 
 ## New:
 infdat$summer <- infdat$week %in% 14:39
 infdat$emeantemp <- round(infdat$emeantemp)
-levels(infdat$socBranch) <- c("office", "farming", "none", "office", "worker") # NOTE!
 ```
 
 # Results
