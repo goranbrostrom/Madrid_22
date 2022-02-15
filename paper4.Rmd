@@ -539,7 +539,10 @@ ltx2(fit.neos, dr = dr.neos, caption = "Neonatal mortality, April to September."
 ## Postneonatal mortality
 
 ```{r setformw}
-form <- as.formula("oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socst + urban + subreg + sex + parity")
+form <- as.formula("oe(event, exposure) ~ socst + extemp + extemp.1 + emeantemp + urban + subreg + sex + parity")
+formex <- as.formula("oe(event, exposure) ~ socst + socst:extemp + extemp.1 + emeantemp + urban + subreg + sex + parity")
+formex1 <- as.formula("oe(event, exposure) ~ socst + socst:extemp.1 + extemp + emeantemp + urban + subreg + sex + parity")
+formem <- as.formula("oe(event, exposure) ~ socst + socst:I(emeantemp + extemp) + extemp.1 + urban + subreg + sex + parity")
 form.sb <-  as.formula("oe(event, exposure) ~ (extemp + extemp.1 + emeantemp) * socst + urban + subreg + sex + parity")
 form.sr <- as.formula("oe(event, exposure) ~ (extemp + extemp.1 + emeantemp) * subreg + socst + urban + sex + parity") 
 tabpost <- readRDS("data/tabpost.rds")
@@ -651,6 +654,23 @@ ltx2(fit.postw1srs, dr = dr.postw1srs, caption = "Postneonatal mortality, Skelle
 We can conclude from Tables \@ref(tab:postw1sru) and \@ref(tab:postw1srs) that the main difference between Umeå and Skellefteå is that
 *climate* has more severe effect in Skellefteå (with inland), while *weather* is less important.
 
+The effects of temperature in different social classes are best shown graphically, see 
+Figure \@ref(fig:soc2).
+
+```{r soc1, fig.cap = "Interactions between social status and temperature, winter 1895--1913."}
+source("R/socfig.R")
+oldpar <- par(mfrow = c(1,3))
+tempdat <- tabpost[(!tabpost$summer) & tabpost$period == "(1895,1914]", ]
+fit <- tpchreg(formem, data = tempdat, time = age)
+fitex <- tpchreg(formex, data = tempdat, time = age)
+fitex1 <- tpchreg(formex1, data = tempdat, time = age)
+socfig(coef(fit), main = "Weekly mean temp")
+socfig(coef(fitex), main = "Excess temp", ran = c(-10, 10))
+socfig(coef(fitex1), main = "Lagged excess temp", ran = c(-10, 10))
+par(oldpar)
+```
+
+
 
 #### The time period 1914--1934
 
@@ -688,6 +708,21 @@ ltx2(fit.postw2srs, dr = dr.postw2srs, caption = "Postneonatal mortality, Skelle
      label = "tab:postw2srs", keep = NULL)
 ```
 
+The effects of temperature in different social classes are best shown graphically, see 
+Figure \@ref(fig:soc2).
+
+```{r soc2, fig.cap = "Interactions between social status and temperature, winter 1914--1934."}
+source("R/socfig.R")
+oldpar <- par(mfrow = c(1,3))
+tempdat <- tabpost[(!tabpost$summer) & tabpost$period == "(1914,1935]", ]
+fit <- tpchreg(formem, data = tempdat, time = age)
+fitex <- tpchreg(formex, data = tempdat, time = age)
+fitex1 <- tpchreg(formex1, data = tempdat, time = age)
+socfig(coef(fit), main = "Weekly mean temp")
+socfig(coef(fitex), main = "Excess temp", ran = c(-10, 10))
+socfig(coef(fitex1), main = "Lagged excess temp", ran = c(-10, 10))
+par(oldpar)
+```
 
 
 
@@ -728,6 +763,23 @@ dr.postw3srs <- drop1(fit.postw3srs, test = "Chisq")
 ltx2(fit.postw3srs, dr = dr.postw3srs, caption = "Postneonatal mortality, Skellefteå with inland, October to March 1895-1913.", 
      label = "tab:postw3srs", keep = NULL)
 ```
+
+The effects of temperature in different social classes are best shown graphically, see 
+Figure \@ref(fig:soc2).
+
+```{r soc3, fig.cap = "Interactions between social status and temperature, winter 1935--1950."}
+source("R/socfig.R")
+oldpar <- par(mfrow = c(1,3))
+tempdat <- tabpost[(!tabpost$summer) & tabpost$period == "(1935,1951]", ]
+fit <- tpchreg(formem, data = tempdat, time = age)
+fitex <- tpchreg(formex, data = tempdat, time = age)
+fitex1 <- tpchreg(formex1, data = tempdat, time = age)
+socfig(coef(fit), main = "Weekly mean temp")
+socfig(coef(fitex), main = "Excess temp", ran = c(-10, 10))
+socfig(coef(fitex1), main = "Lagged excess temp", ran = c(-10, 10))
+par(oldpar)
+```
+
 
 ### Summer
 
