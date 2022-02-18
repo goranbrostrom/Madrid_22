@@ -1,4 +1,4 @@
-socfig <- function(coeff, ran = c(-25, 5), main = "1935-1950"){
+socfig <- function(coeff, ran = c(-25, 5), main = "1935-1950", pval = 0.03){
     ## coeff is output from tpchreg(oe(event, exposure) ~ socst + socst:emeantemp 
     ## controls+)
     ny <- coeff[substr(names(coeff), 1, 5) == "socst"]
@@ -20,4 +20,5 @@ socfig <- function(coeff, ran = c(-25, 5), main = "1935-1950"){
     legend("topright", legend = nam, col = 1:6, lty = 1:6, cex = 0.7)
     points(0, 1, cex = 2)
     abline(h = 1, v = 0, lty = 3)
+    text(0, ymax - 1, paste("p = ", round(pval, 3)), col = ifelse(pval < 0.05, "red", "black"))
 }
