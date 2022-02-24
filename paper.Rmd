@@ -1,5 +1,5 @@
 ---
-title: "A biometric analysis of infant mortality and temperature, northern Sweden 1895-1950"
+title: "A biometric analysis of infant mortality and temperature, northern Sweden 1895--1950"
 author: "Göran Broström and Tommy Bengtsson"
 date: "`r Sys.time()`"
 output:
@@ -30,7 +30,7 @@ header-includes:
 - \usepackage{a4wide}
 - \usepackage[tablesonly]{endfloat}
 - \renewcommand{\efloatseparator}{\mbox{}}
-abstract: "The effect of extreme temperatures on infant mortality in the Umeå and Skellefteå regions 1895-1950 is studied in a biometric analysis setting. More precisely, the effect of climate and weather, measured by temperature, average and extremes, on infant mortality is investigated. It turns out that climate (average) is more important than weather (extremes), low average temperatures are more important than temporary dips in temperature, but effects are different in neonatal and postneonatal settings."
+abstract: "The effect of extreme temperatures on infant mortality in the Umeå and Skellefteå regions 1895--1950 is studied in a biometric analysis setting. More precisely, the effect of climate and weather, measured by temperature, average and extremes, on infant mortality is investigated. The main question is to what extent temperature, directly or indirectly via humidity, affect the survival of infants and to what extent it depends on the resources of the family. It turns out that the normal seasonality (the average temperature) is generally more important than the extremes (the deviations), low average temperatures are more important than temporary dips in temperature, but effects are different in neonatal and postneonatal settings. It is at normal temperatures that we expect the resources of the family to be of most importance, and this is also what we find. In extremely cold winters, also the children of the higher classes suffered from increased postneonatal mortality."
 ---
 
 
@@ -49,7 +49,9 @@ par(las = 1, cex.axis = 0.8, cex.lab = 0.8, cex = 0.8)
 
 ```{r readdata}
 births <- readRDS("data/births4.rds")
-infdat  <- readRDS("data/infdat4.rds")
+infdat <- readRDS("data/infdat4.rds")
+infdat$marginTemp <- round(infdat$extemp.1)
+infdat$expTemp <- round(infdat$emeantemp.1)
 ```
 # Introduction
 
@@ -57,12 +59,17 @@ The impact of ambient temperature variations on infant mortality is studied for
 two northern Sweden areas, the Umeå coastal region and Skellefteå coastal and inland regions, during the 
 first half of the twentieth century. Two recent papers [@junkka; @karlsson] studied 
 neonatal mortality and temperature variations in this geographical area during the 
-years 1880--1950. Climate and mortality in general is a research area that has 
-generated great interest over the last years, see @tbgb10 for an example of our own efforts.
+years 1880--1950.
+@rock2014 studies associations between temperature and age-stratified mortality,
+Skellefteå 1749--1859. Effects of temperature on mortality in general is a research area that has generated great interest over the last years, partly due to new weather conditions related to climate change.
 
-The effect of seasonal variation and the occurrence of extreme monthly temperatures
-is studied and interacted with social class and time period. Studies are performed 
-separately for neonatal  and postneonatal mortality, and for winter and summer seasons.
+In our previous study, we analysed the role of climate for mortality in different ages in southern Sweden 1766--1860 combining time-series data on temperature and longitudinal individual level data
+[@tbgb10]. We found that low winter temperatures led to an increase in mortality among adults but not children in ages 1-15 years [@tbgb10]. To understand how hard winters and warm summers affected different parts of the population, we used methods similar to the ones we have developed for our analyses of the impact of food prices. This means that the focus was on annual variations on temperature and mortality. The main focus was on demographic vulnerability to changes in external factors, such as food process and temperature, as a measurement of living standards. Well-off groups could afford buying food and firewood even of prices went up, while those living close to their margins suffered to such an extent that family members might die [@tb04]. Still, child mortality was fairly equal between social classes until the latter part of the nineteenth century to widen in the beginning of the twentieth century, for both post-neonatal infant and child mortality [@dk21]. For neonatal mortality, no systematic class differences existed in any period. While infant was equal between social classes up until the end of the nineteenth century, it differed between urban and rural areas. In fact, in 1850, infant mortality in urban areas was 50 percent higher than in rural areas and it was not until the 1920s that mortality rates converged [@scb69].
+
+Periods with low temperature might not only cause problems of keeping body heat, indoors and outdoors, but also lead to an increase in the spread of virus. The reason is that low temperature is associated with low humidity. A study of England and Wales in 1921--27, for example, shows the close connections between seasonality in temperature, humidity, and diagnosed cases of smallpox, which was a mild disease by then [@rl28]. This means that you are more likely to be infected by viral diseases, such as measles, whooping-cough, and influenza, in low temperatures. Since the outcome of such diseases are not dependent on the nutritional status of the host [@rr83], we anticipate that they will not have a social gradient. Other diseases that are nutritionally dependent, such as pneumonia, TB, and gastro-intestinal diseases, might, however, have such a gradient. It means that low winter temperatures might give rise to a social gradient in mortality, but it may as well be socially neutral.
+
+In this study, we differentiate between neonatal and postneonatal mortality in an effort to understand the role of resources to protect infants rom both normal and extreme ambient temperatures. We analyse the effects of seasonal variation and the occurrence of extreme weekly temperatures and its interaction with social class and time period. Analyses are performed separately for neonatal and post neonatal mortality, and for winter and summer seasons. The reason is that mortality in the first four weeks of life is associate with different factors than mortality later in infancy. For this reason, Bourgeois-Pichat differentiate between endogenous and exogenous factors, arguing that mortality shortly after birth is due to the maternal health, fetal factors, and the delivery itself, whereas it afterwards is due to exposure to external factors following the birth-weight development [@bp51a;@bp51b]. The main question is to what extent temperature, directly or indirectly via humidity, affect the survival of infants and to what extent it depends on the resources of the family. 
+
 
 Figure \@ref(fig:map) shows the study area within Sweden, with the weather stations 
 marked. The map is taken (with permission) from the paper by @junkka.
@@ -143,7 +150,7 @@ The seasonal pattern is similar to the one we found above for infant mortality.
 
 The average weekly postneonatal mortality is shown in Figure \@ref(fig:pneodata).
 
-```{r pneodata, fig.cap = "Crude postneonatal mortality by week of year, Umeå/Skellefteå 1895--1950.", fig.height = 3, cache = TRUE}
+```{r pneodata, fig.cap="Crude postneonatal mortality by week of year, cache=FALSE, Umeå/Skellefteå 1895--1950.", fig.height=3}
 pneo <- age.window(infdat, c(28 / 365, 1))
 tpneo <- toTpch(Surv(enter, exit, event) ~ week, data = pneo, cuts = c(28 / 365, 1))
 y <- tpneo$event / tpneo$exposure
@@ -172,7 +179,7 @@ abline(h = 0)
 ```
 
 
-```{r ntrend, fig.cap = "Crude NMR by year, Umeå-Skellefteå 1895--1950.", fig.height = 4, cache = TRUE}
+```{r ntrend, fig.cap = "Crude NMR by year, Umeå-Skellefteå 1895--1950.", fig.height = 3, cache = TRUE}
 ndat <- age.window(infdat, c(0, 28 / 365))
 tnda <- toTpch(Surv(enter, exit, event) ~ year, data = ndat, cuts = c(0, 28 / 365))
 y <- tnda$event / tnda$exposure
@@ -184,7 +191,7 @@ abline(h = 0)
 abline(h = c(0.2, 0.4, 0.6), lty = 3)
 ```
 
-```{r pntrend, fig.cap = "Crude postneonatal mortality by year, Umeå-Skellefteå 1895--1950.", fig.height = 4, cache = TRUE}
+```{r pntrend, fig.cap = "Crude postneonatal mortality by year, Umeå-Skellefteå 1895--1950.", fig.height = 3, cache = TRUE}
 pndat <- age.window(infdat, c(28 / 365, 1))
 tpnda <- toTpch(Surv(enter, exit, event) ~ year, data = pndat, 
                 cuts = c(28 / 365, 1))
@@ -342,7 +349,7 @@ abline(h = 1:6, lty = 3)
 The two data sets, mortality and weather, are combined into one by treating temperature data 
 as a communal covariate and incorporate it as such in the mortality data set. The 
 function *make.communal* in the **R** [@cran] package *eha* [@eha; @ehar2] is used 
-for that purpose.  Resulting data drame is partly shown in Table \@ref(tab:readdata3).
+for that purpose.  Resulting data frame is partly shown in Table \@ref(tab:readdata3).
 
 ```{r readdata3}
 levels(infdat$subreg) <- c("ume", "ske", "inland")
@@ -353,17 +360,21 @@ levels(infdat$subreg) <- c("ume", "ske", "inland")
 ##infdat$lowTemp <- with(infdat, (extemp < -3) & (extemp.1 < -3))
 infdat$lowTemp <- (with(infdat, cold + cold.1 < -10))
 infdat$highTemp <- with(infdat, (extemp > 3) & (extemp.1 > 3))
-tbl(head(infdat[, c("enter", "exit", "event", "extemp", "extemp.1", "emeantemp", "week", "year")]),
-    caption = "Data with communal covariates.", fs = 9)
+##infdat$weather <- infdat$extemp.1
+##infdat$climate <- round(infdat$emeantemp)
+tbl(head(infdat[, c("enter", "exit", "event", "marginTemp", "expTemp", "week", "year")]),
+    caption = "Data with communal covariates.", fs = 11)
 ```
 
-
+We will use the temperature variables *meantemp* and *emeantemp* under the names *marginTemp* 
+and *expTemp*, respectively, lagged one week. That is, we assume that the effect of 
+temperatures on mortality show itself the following week.
 
 # Statistical modelling
 
-It turns out that extremely low temperature (`lowTemp`) is bad during all seasons except summer,
-and extremely high temperature (`highTemp`) is bad during summer, but good otherwise.
-So we group season into two categories, *summer* and *not summer*.
+It turns out that extremely low temperature is bad during all seasons,
+and extremely high temperature is bad during summer, but good otherwise.
+So we group season into two categories, *summer* and *winter*.
 In each case separate analyses for neonatal and postneonatal mortality are performed. 
 
 The *summer* half-year consists of the weeks 14--39, about 1 April to 30 September, and the *winter*
@@ -379,23 +390,30 @@ infdat$parity <- cut(infdat$parity, c(-2, 1.5, 4.5, 19), labels = c("1", "2-4", 
 ##infdat$season <- as.factor(infdat$season)
 ## New:
 infdat$summer <- infdat$week %in% 14:39
-infdat$emeantemp <- round(infdat$emeantemp)
+##infdat$eexpTemp <- round(infdat$emeantemp)
 ```
 
-# Results
+## Variables
 
-The results regarding neonatal mortality is much in accordance with the results
-found by @junkka. However, they used temperature in a "hockey-stick" regression with a breakpoint at
-14.5 degrees Celsius and a negative slope (decreasing risk) to the left and a positive slope
-(increasing risk) to the right. Instead, we are using the average weekly temperature
-for the 52 weeks of a year, for each week averaging over all the years in the study, as
-our "reference points" ("climate"), adding deviances up and down ("weather") as
-"short-term temperature stress". This is similar to the way prices and mortality were related
-in for instance @genus11, that is, a time series split into long time trend and short
-term variation.
+These are the covariates considered in our analyses. Central are the two first, 
+already discussed, but of interest is also their effect (on mortality) covariation,
+primarily with *social status* (`socst`).
+
+*   **expTemp** (time varying) expected temperature given week number.
+*   **marginTemp** (time varying) Observed week temperature minus expTemp.
+*   **socst** Social status:
+     + *highWhiteC* Upper white collar
+     + *farmer*
+     + *lowWhiteC* Lower white collar
+     + *qualWorker* Qualified worker
+     + *worker* Unqualified worker
+     + *none* No notation (for instance unmarried mother)
+*   **sex** Boy or girl
+*   **urban** Small town (Umeå or Skellefteå) or not (logical)
+*   **parity** Birth order
+*   **year**  (time varying)
 
 Comments on other candidate covariates: 
-
 *Birth month* is left out in the analyses despite that fact that
 it is an important factor in neonatal mortality. However, we include *time of year* in terms of 
 *winter* and *summer* as a time-varying covariate, and in the neonatal case it will coincide to a
@@ -404,16 +422,33 @@ for those infants who have survived the first month of life, birth month does no
 We separate the investigation into two parts, *neonatal* and *postneonatal* mortality. But first,
 a joint analysis.
 
-*Socioeconomic status* is divided into two factor covariates: *socBranch* and *socStatus*. The latter should be 
-seen relative to actual *socBranch*. We have information on whether the infant was *illegitimate* (mother unmarried),
-but we incorporate those cases in the category *none* of *socBranch* and *unknown* as category of *socStatus*.
+ We have information on whether the infant was *illegitimate* (mother unmarried);
+those cases are incorporated in the category *none* of **socst**.
+
+# Results
+
+The results regarding neonatal mortality is much in accordance with the results
+found by @junkka. However, they used temperature in a "hockey-stick" regression with a breakpoint at
+14.5 degrees Celsius and a negative slope (decreasing risk) to the left and a positive slope
+(increasing risk) to the right. Instead, we are using the average weekly temperature
+for the 52 weeks of a year, for each week averaging over all the years in the study, as
+our "reference points" ("expTemp"), adding deviances up and down ("marginTemp") as
+"short-term temperature stress". This is similar to the way prices and mortality were related
+in for instance @genus11, that is, a time series split into long time trend and short
+term variation.
+
 
 
 ```{r managedata}
+neo <- age.window(infdat, c(0, 28 / 365))
+ pneo <- age.window(infdat, c(28/365, 1))
+```
+
+```{r nonenow, eval=FALSE}
 if (!(file.exists("data/inftab.rds") && file.exists("data/tabneo.rds") && file.exists("data/tabpost.rds"))){
-    neo <- age.window(infdat, c(0, 28 / 365))
+
     neo$ageIvl <- "neo"
-    pneo <- age.window(infdat, c(28/365, 1))
+    
     pneo$ageIvl <- "postneo"
     all <- rbind(neo, pneo)
     all$ageIvl <- factor(all$ageIvl)
@@ -423,8 +458,7 @@ if (!(file.exists("data/inftab.rds") && file.exists("data/tabneo.rds") && file.e
     ##               data = all)
     ##dr.all <- drop1(fit.all, test = "Chisq")
     
-    inftab <- toTpch(Surv(enter, exit, event) ~ subreg + sex + period + socst + urban + parity + 
-                         extemp + extemp.1 + emeantemp + summer + ageIvl, data = all,
+    inftab <- toTpch(Surv(enter, exit, event) ~ subreg + sex + period + socst + urban + parity +  marginTemp + expTemp + summer + ageIvl, data = all,
                      cuts = c(0, 3, 7, 14, 28, 56, 84, 145, 207, 286, 365) / 365)
     tabneo <- inftab[inftab$ageIvl == "neo", ]
     tabpost <- inftab[inftab$ageIvl == "postneo", ]
@@ -438,11 +472,14 @@ if (!(file.exists("data/inftab.rds") && file.exists("data/tabneo.rds") && file.e
 }
 ```
 
-```{r joint, cache = TRUE}
-fit.all <- tpchreg(oe(event, exposure) ~  strata(ageIvl) * 
-                       (extemp + extemp.1 + emeantemp + socst + period + urban), 
-                   data = inftab, time = age)
-dr.all <- drop1(fit.all, test = "Chisq")
+```{r joint, cache=FALSE}
+if (!file.exists("Rdata/dr.all.rds")){
+    fit.all <- tpchreg(oe(event, exposure) ~  strata(ageIvl) * 
+                           (extemp.1 + emeantemp.1 + socst + period + urban), 
+                       data = inftab, time = age)
+    dr.all <- drop1(fit.all, test = "Chisq")
+    saveRDS(dr.all, file = "Rdata/dr.all.rds")
+}
 ##system.time(tabneo.fit <- tpchreg(oe(event, exposure) ~ extemp + emeantemp + highTemp + lowTemp + socst, 
   ##               data = tabneo, time = age))
 ##system.time(tabpost.fit <- tpchreg(oe(event, exposure) ~ extemp + emeantemp + highTemp + lowTemp + socst, 
@@ -453,312 +490,323 @@ Covariates may affect neonatal and postneonatal mortality differently, and one w
 investigate that is to stratify the infant mortality data into two age intervals, one from
 birth to one month of age and the other from one month to one year of age. Then the
 interaction between the stratum variable and other variables of interest is investigated, 
-with this result:
+with the result shown in Table \@ref(tab:shownonprop).
 
-```{r shownonprop, cache = FALSE}
-dr.all
-##tbl(round(dr.all, 4), caption = "Proportionality tests, neonatal vs. postneonatal.", rownames = TRUE)
+```{r shownonprop, cache = FALSE, results='asis'}
+dr.all <- readRDS("Rdata/dr.all.rds")
+rownames(dr.all)[2] <- "strata(ageIvl):marginTemp"
+rownames(dr.all)[3] <- "strata(ageIvl):expTemp"
+
+tbl(round(dr.all, 4), caption = "Proportionality tests, neonatal vs. postneonatal.", rownames = TRUE)
 ```
 
-We can see that the variables *emeantemp*, *socStatus* and *period* all have different effects on mortality in the neonatal case compared to the postneonatal case. In terms of 
-*infant mortality*, we can say that these caovariates have non-proportional effects.
+We can see that the variables *expTemp*, *socst* and *period* all have different effects 
+on mortality in the neonatal case compared to the postneonatal case. In terms of 
+*infant mortality*, we can say that these covariates have *strong non-proportional* effects.
+The response to *marginTemp* variations are probably also different in the neonatal and 
+postneonatal periods ($p$-value = 0.09).
+
+Figure \@ref(fig:ph) shows the crude infant mortality, calculated over the complete sample.
+
+```{r ph, fig.cap = "Crude infant mortality."}
+##daycuts <- c(0, 3, 7, 14, 28, 56, 84, 145, 207, 286, 365)
+##daycuts <- c(0, 3, 7, 28, 56, 140, 183, 250, 365)
+b1 <- births
+b1$enter <- b1$enter / 365
+b1$exit <- b1$exit / 365
+daycuts <- c(seq(0, 28, by = 2), seq(49, 245, by = 28), 285, 324, 365)
+bb <- toTpch(Surv(enter, exit, event) ~ 1, data = b1, cuts = daycuts / 365)
+fit.ph1 <- tpchreg(oe(event, exposure) ~ 1, data = bb, time = age)
+plot(fit.ph1, fn = "haz", axes = FALSE, xlab = "Days", main = "", lwd = 1.5, col = "blue")
+dax <- c(0, 28, 91, 183, 365)
+axis(1, at = dax / 365, labels = dax)
+axis(2, las = 1)
+box()
+abline(v = 28 / 365, lty = 3)
+abline( h = 0, v = 0)
+```
+
+A calmer development for the postneonatal mortality, see Figure \@ref(fig:phneo).
+
+```{r phneo, fig.cap = "Crude postneonatal mortality."}
+b2 <- age.window(b1, c(28 / 365, 1))
+pcuts <- c(28, seq(49, 245, by = 28), 285, 324, 365)
+tp <- toTpch(Surv(enter, exit, event) ~ 1, data = b2, cuts = pcuts / 365)
+
+fit.ph <- tpchreg(oe(event, exposure) ~ 1, data = tp, time = age)
+plot(fit.ph, fn = "haz", axes = FALSE, xlab = "Days", main = "", lwd = 1.5, col = "blue")
+axis(1, at = pcuts / 365, labels = pcuts)
+axis(2, las = 1)
+box()
+##abline(v = 28 / 365, lty = 3)
+abline( h = 0, v = 0)
+```
+
+Figure \@ref(fig:phneo) suggests that some smooth parametric model could fit well,
+for instance the *left truncated Weibull*  distribution. Let's see (Figure \@ref(fig:weib)).
+
+```{r weib, fig.cap = "A perfect Weibull hazard fit."}
+##births <- readRDS("data/births4.rds")
+postbirths <- age.window(births, c(28, 365))
+postbirths$exit <- postbirths$exit / 365
+postbirths$enter <- postbirths$enter / 365
+fit <- phreg(Surv(enter, exit, event) ~ 1, data = postbirths)
+plot(fit, fn = "haz", lwd = 1.5, col = "blue", main = "", xlab = "Days", axes = FALSE)
+axis(1, at = dax / 365, labels = dax)
+axis(2, las = 1)
+abline(h = 0, v = 28 / 365)
+box()
+hh <- hazards(fit.ph, cum = FALSE)
+lines(hh$x, hh$y, col = "red")
+legend("topright", legend = c("Truncated Weibull", "Piecewise constant"), col = c("blue", "red"), lwd = c(1.5,1))
+```
+
+A perfect fit!
+
+In the following we split the analyses into the neonatal and the postneonatal periods, with
+a focus on the latter. But we start with a short comment on the link to *biometric* analysis
+à la @bp51a.
+
+## The biometric finding
+
+What happens if we extend the truncated Weibull back into neonatal territory? The answer
+is given in Figure \@ref(fig:neowei).
+
+```{r neowei, fig.cap = "Weibull hazard functions, total and exogenous neonatal mortality.", fig.height = 4}
+b3 <- age.window(b1, c(0, 28 / 365))
+fit.w0 <- phreg(Surv(enter, exit, event) ~ 1, data = b3)
+plot(fit.w0, fn = "haz", axes = FALSE, xlab = "Days", main = "", lwd = 1.5, col = "red", ylim = c(0, 3))
+#fit.ph <- tpchreg(oe(event, exposure) ~ 1, data = inftab, time = age)
+##plot(fit.ph1, fn = "haz", axes = FALSE, xlab = "Days", main = "", lwd = 1.5, col = "red",
+  ##   xlim = c(0, 28 / 365))
+dor <- seq(0, 28, by = 2)
+axis(1, at = dor / 365, labels = dor)
+axis(2, las = 1)
+box()
+##abline(v = 28 / 365, lty = 3)
+abline( h = 0, v = 0)
+pars <- exp(fit$coefficients)
+x <- seq(0, 28/365, length = 1000)
+y <- hweibull(x, shape = pars[2], scale = pars[1])
+lines(x, y, col = "blue", lwd = 1.5)
+legend("topright", legend = c("Weibull postneonatal (exogenous), extrapolated", "Weibull neonatal (total)"), col = c("blue", "red"), lwd = c(1.5, 1))
+```
+
+Not very good fit in this territory. The difference here is that to the exogenous mortality, endogenous mortality is added.
+The difference between the piecewise constant and the Weibull in the figure would be 
+called the *endogeneous infant mortality* [@bp51a; @bp51b].
 
 ## Neonatal mortality
 
+The neonatal mortality in our geographical area and time period is thoroughly analysed
+in two papers by @karlsson and @junkka and we only present a brief confirmatory analysis.
 
-The analyses are split into two parts by season, *winter* is one, and *summer* the other.
-Summer covers the months April to September, and winter the rest of the months.
+No strong signs of interactions with marginTemp and expTemp data, so these factors strike
+almost evenly over different subpopulations. Moreover, the effects are stronger during winter,
+with a decrease in mortality for each degree temperature increase, almost the same amount 
+for both, around 1.2 per cent. 
 
-```{r formneo}
-formneo <- as.formula("oe(event, exposure) ~  extemp + extemp.1 + emeantemp + socst + period + urban +
-                     subreg + sex + parity")
-tabneo <- readRDS("data/tabneo.rds")
-```
+Separate analyses for winter and summer, see Tables \@ref(tab:neowinter) and 
+\@ref(tab:neosummer) follow. 
 
 ### Winter
 
-This period refers to the months *October to March*. A Cox regression involves as
-interesting variables *highTemp*, an indicator of temperature at least four degrees
-above the expected for at least two weeks in a row, *emeantemp* the expected temperature
-the actual weeek, and *extemp* the *excess temperature* the actual week.
-
-
-```{r neoanalwp, results = 'asis', cache = TRUE}
-
-##library(survival)
-winter <- tabneo[!tabneo$summer, ]
-##winter$season <- factor(winter$season)
-##neo$exit <- g(neo$exit * 365) # Skip the log-cube transformation
-##neo$enter <- g(neo$enter * 365)
-fit.neow <- tpchreg(formneo, data = winter, time = age)
-dr <- drop1(fit.neow, test = "Chisq")
+```{r neowinter, results = "asis"}
+##neo$marginTemp <- neo$extemp.1
+##neo$expTemp <- neo$emeantemp.1
+fit.neow <- coxreg(Surv(enter, exit, event) ~ expTemp + marginTemp + socst + 
+                      sex + urban + parity + I(year - 1920),
+                  data = neo[!neo$summer, ])
+drw <- drop1(fit.neow, test = "Chisq")
+ltx(fit.neow, dr = drw, caption = "Neonatal mortality, winter.", label = "tab:neowinter")
 ```
 
-```{r neoanalw, results = "asis", cache = FALSE}
-ltx2(fit.neow, dr = dr, caption = "Neonatal mortality, October to March.", 
-     label = "tab:neoanalw", keep = NULL)
+The result of a Cox regression of neonatal mortality during winter is shown in Table \@ref(tab:neowinter).
+There is a (statistically) strong effect of *expTemp*, an increase of the expected temperature
+lowers neonatal mortality by around 1.3 per cent per degree. Almost the same effect is shown for *marginTemp*.
+
+The interaction between social status and expTemp is shown in Figure \@ref(fig:plotwcsn). Nothing interesting is
+going on, the effect of expTemp on neonatal mortality is the same in all social classes ("no interaction" between
+expTemp and socst).
+
+```{r plotwcsn, fig.cap = "Socioeconomic status and expTemp, winter. Neonatal mortality.", fig.height = 3}
+source("R/socfig.R")
+winter <- neo[!neo$summer, ]
+fitw <- coxreg(Surv(enter, exit, event) ~ socst:expTemp + socst, data = winter)
+fitw0 <- coxreg(Surv(enter, exit, event) ~ socst + expTemp, data = winter)
+p <- anova(fitw, fitw0)[[4]][2]
+rang <- range(winter$expTemp)
+socfig(coef(fitw), main = "", pval = p, ran = rang, ymax = 4)
 ```
 
-#### Temperature and sex
 
-We check the interaction between temperature and sex and period.
+The interaction between social status and marginTemp is shown in Figure \@ref(fig:plotwwsn). A little
+bit more action here, but the conclusion stays the same: No interaction between marginTemp and social class,
+bad marginTemp hits all by the same strength. 
 
-```{r neosexper}
-fit <- tpchreg(oe(event, exposure) ~ sex * (extemp + extemp.1 + emeantemp), 
-               time = age, data = winter)
-dr <- drop1(fit, test = "Chisq")
-dr
+```{r plotwwsn, fig.cap = "Socioeconomic status and marginTemp, winter. Neonatal mortality.", fig.height = 3}
+source("R/socfig.R")
+fitww <- coxreg(Surv(enter, exit, event) ~ socst:marginTemp + socst, data = winter)
+fitww0 <- coxreg(Surv(enter, exit, event) ~ socst + marginTemp, data = winter)
+p <- anova(fitww, fitww0)[[4]][2]
+rang <- range(winter$marginTemp)
+socfig(coef(fitww), main = "", pval = p, ran = rang, ymax = 4)
 ```
-
-Obviously no temperature and sex interactions
 
 ### Summer
 
-This period refers to the months *April to September*. A Cox regression involves as
-interesting variables *highTemp*, an indicator of temperature at least four degrees
-above the expected for at least two weeks in a row, *emeantemp* the expected temperature
-the actual weeek, and *extemp* the *excess temperature* the actual week.
+The summer result of a Cox regression is shown in Table \@ref(tab:neosummer).
+Compared to winter, the *expTemp* effect is in the same direction but weaker, while 
+the effect of *marginTemp* is zero.
 
-
-```{r neoanalsp, cache = TRUE}
-##library(survival)
-#summer <- neo[neo$summer, ]
-##summer$season <- factor(summer$season)
-##neo$exit <- g(neo$exit * 365) # Skip the log-cube transformation
-##neo$enter <- g(neo$enter * 365)
-fit.neos <- tpchreg(formneo, data = tabneo[tabneo$summer, ], time = age)
-dr.neos <- drop1(fit.neos, test = "Chisq")
+```{r neosummer, results = "asis"}
+##neo$marginTemp <- neo$extemp.1
+##neo$expTemp <- neo$emeantemp.1
+fit.neos <- coxreg(Surv(enter, exit, event) ~ expTemp + marginTemp + socst + 
+                      sex + urban + parity + I(year - 1920),
+                  data = neo[neo$summer, ])
+##data = neo[neo$week %in% 20:32, ])
+drs <- drop1(fit.neos, test = "Chisq")
+ltx(fit.neos, dr = drs, caption = "Neonatal mortality, summer.", label = "tab:neosummer")
 ```
 
-```{r neoanals, results = 'asis', cache = FALSE}
-ltx2(fit.neos, dr = dr.neos, caption = "Neonatal mortality, April to September.", 
-     label = "tab:neoanals", keep = NULL)
+
+During summer, expTemp and marginTemp effects are clearly smaller, and regarding marginTemp, the opposite 
+direction: Excess heat increases the death risk, however not very much and not statistically significant. 
+
+The interaction between social status and *expTemp* is shown in Figure \@ref(fig:plotscsn). 
+Nothing of interest is going on.
+
+```{r plotscsn, fig.cap = "Socioeconomic status and expTemp, summer. Neonatal mortality.", fig.height = 3}
+source("R/socfig.R")
+summer <- neo[neo$summer, ]
+fits <- coxreg(Surv(enter, exit, event) ~ socst:expTemp + socst, data = summer)
+fits0 <- coxreg(Surv(enter, exit, event) ~ socst + expTemp, data = summer)
+p <- anova(fits, fits0)[[4]][2]
+rang <- range(summer$expTemp)
+socfig(coef(fits), main = "", pval = p, ran = rang, ymax = 4)
 ```
+
+The interaction between social status and *marginTemp* is shown in Figure \@ref(fig:plotswsn). The same conclusion as 
+for *expTemp*, nothing of interest shows up.
+
+```{r plotswsn, fig.cap = "Socioeconomic status and marginTemp, summer. Neonatal mortality.", fig.height = 3}
+source("R/socfig.R")
+fitsw <- coxreg(Surv(enter, exit, event) ~ socst:marginTemp + socst, data = summer)
+fitsw0 <- coxreg(Surv(enter, exit, event) ~ socst + marginTemp, data = summer)
+p <- anova(fitsw, fitsw0)[[4]][2]
+rang <- range(summer$marginTemp)
+socfig(coef(fitsw), main = "", pval = p, ran = rang, ymax = 4)
+```
+
 
 
 ## Postneonatal mortality
 
 ```{r setformw}
-form <- as.formula("oe(event, exposure) ~ socst + extemp + extemp.1 + emeantemp + urban + subreg + sex + parity")
-formex <- as.formula("oe(event, exposure) ~ socst + socst:extemp + extemp.1 + emeantemp + urban + subreg + sex + parity")
-formex1 <- as.formula("oe(event, exposure) ~ socst + socst:extemp.1 + extemp + emeantemp + urban + subreg + sex + parity")
-formem <- as.formula("oe(event, exposure) ~ socst + socst:emeantemp + extemp + extemp.1 + urban + subreg + sex + parity")
-form.sb <-  as.formula("oe(event, exposure) ~ (extemp + extemp.1 + emeantemp) * socst + urban + subreg + sex + parity")
-form.sr <- as.formula("oe(event, exposure) ~ (extemp + extemp.1 + emeantemp) * subreg + socst + urban + sex + parity") 
+form <- as.formula("oe(event, exposure) ~ socst + extemp.1 + eexpTemp.1 + urban + subreg + sex + parity")
+
+formex1 <- as.formula("oe(event, exposure) ~ socst + socst:extemp.1 + eexpTemp.1 + urban + subreg + sex + parity")
+formem <- as.formula("oe(event, exposure) ~ socst + socst:eexpTemp.1 + extemp.1 + urban + subreg + sex + parity")
+form.sb <-  as.formula("oe(event, exposure) ~ extemp.1 * socst + urban + subreg + sex + parity")
+form.sr <- as.formula("oe(event, exposure) ~ (extemp.1 + eexpTemp.1) * subreg + socst + urban + sex + parity") 
 tabpost <- readRDS("data/tabpost.rds")
 ```
 
-#### By birth month
-
-See Figure \@ref(fig:bybmonth).
-
-```{r bybmonth, fig.cap = "Crude postneonatal relative (to January = 1) mortality by birth month.", cache = TRUE}
-pn <- age.window(infdat, c(28/365, 1))
-fit <- coxreg(Surv(enter, exit, event) ~ as.factor(birthmonth), data = pn)
-plot(exp(c(0, coef(fit))), type = "b", xlab = "Birth month", ylab = "Hazard ratios",
-     col = "blue")
-abline(h = 1)
-```
-
-
 ### Winter
 
+See Table \@ref(tab:allpneo) for winter results. Variation in normal temperature (expTemp) has a large and 
+statistically significant effect on postneonatal mortality. The same goes for the marginal 
+temperature effect, however not so pregnant as fot the expTemp.
 
-```{r postanalwp, results='asis', cache = TRUE}
-##tpneo <- toTpch(Surv(enter, exit, event) ~ lowTemp + highTemp + extemp + emeantemp + sex + socst + illeg + parity
-  ##              + subreg + period, data = infdat, cuts = c(0, 1))
-##winter <- gtpneo[gtpneo$summer == 0, ]
-##winter$season <- factor(winter$season)
-
-fit.postw <- tpchreg(oe(event, exposure) ~ period * (extemp + extemp.1 + emeantemp), 
-                     data = tabpost[!tabpost$summer, ], time = age)
-dr.postw <- drop1(fit.postw, test = "Chisq")
+```{r allpneo, results = "asis", cache = TRUE}
+##pneo$expTemp <- pneo$eexpTemp.1
+##pneo$marginTemp <- pneo$extemp.1
+winter <- pneo[!pneo$summer, ]
+fit.pneo <- coxreg(Surv(enter, exit, event) ~ expTemp + marginTemp + sex + socst +
+                        urban + parity + I(year - 1920), data = winter)
+dr <- drop1(fit.pneo, test = "Chisq")
+ltx(fit.pneo, dr = dr, caption = "Postneonatal mortality, winter.", label = "tab:allpneo")
 ```
 
-Interaction tests with temperature and period, postneonatal mortality:
+The interaction between social status and expTemp is shown in Figure \@ref(fig:plotwcs). All except the 
+upper white collar have almost the same (negative) slope, the upper class do not have much problem with normal 
+temperature variations.
 
-```{r postanalw, cache = FALSE}
-round(dr.postw, 4)
-#tbl(round(dr.postw, 4), caption = "Interaction tests with temperature and period, postneonatal ##mortality.", rownames = TRUE)
-```
-
-This shows that the temperature effects do not vary much with time period,
-but we continue with separate analyses for the time periods `r levels(tabpost$period)`. Just
-to make sure, will be joined when appropriate.
-
-#### Sex, urban,  and temperature
-
-
-```{r postanalwpsex, results='asis', cache = TRUE}
-##tpneo <- toTpch(Surv(enter, exit, event) ~ lowTemp + highTemp + extemp + emeantemp + sex + socst + illeg + parity
-  ##              + subreg + period, data = infdat, cuts = c(0, 1))
-##winter <- gtpneo[gtpneo$summer == 0, ]
-##winter$season <- factor(winter$season)
-
-fit.postwsex <- tpchreg(oe(event, exposure) ~ (sex + urban) * (extemp + extemp.1 + emeantemp), 
-                     data = tabpost[!tabpost$summer, ], time = age)
-dr.postwsex <- drop1(fit.postwsex, test = "Chisq")
-```
-
-Interaction tests with temperature and sex, postneonatal mortality:
-
-```{r postanalwsex, cache = FALSE}
-round(dr.postwsex, 4)
-#tbl(round(dr.postw, 4), caption = "Interaction tests with temperature and period, urban, postneonatal ##mortality.", rownames = TRUE)
-```
-
-Obviously no interactions between temperature and sex, and urban.
-
-#### The full time period
-
-```{r postw1p, results = "asis"}
-fit.postw1 <- tpchreg(form, data = tabpost[(!tabpost$summer), ], time = age)
-dr.postw1 <- drop1(fit.postw1, test = "Chisq")
-```
-
-```{r postw1, results = "asis", cache = FALSE}
-ltx2(fit.postw1, dr = dr.postw1, caption = "Postneonatal mortality, October to March 1895-1914.", 
-     label = "tab:postw1", keep = NULL)
-```
-
-Table \@ref(tab:postw1) shows that the effects of  extreme temperatures have the expected directions, extra high temperatures is *positive* 
-(remember that this concerns winter conditions), but not statistically significant. *Climate* (emeantemp), on the other hand shows to be very
-important, where increasing temperature by one degree lower mortality by 0.7 per cent. The normal short term fluctuations (extemp) are not so important, 
-but in the expected direction. 
-
-The importance of social class (socBranch) in explaining the effects of climate and weather is negligible, but there is variation between
-the regions regarding *climate*: 
-
-```{r postw1srpu, cache = TRUE}
-fit.postw1sru <- tpchreg(oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socst + urban + sex + parity, 
-                        data = tabpost[(!tabpost$summer) & tabpost$subreg == "ume", ], time = age)
-dr.postw1sru <- drop1(fit.postw1sru, test = "Chisq")
-```
-
-```{r postw1sru, results = "asis"}
-ltx2(fit.postw1sru, dr = dr.postw1sru, caption = "Postneonatal mortality, Umeå.",
-     label = "tab:postw1sru", keep = NULL)
-```
-
-```{r postw1srps, cache = TRUE}
-fit.postw1srs <- tpchreg(oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socst + urban + sex + parity, 
-                        data = tabpost[(!tabpost$summer) & tabpost$subreg != "ume", ], time = age)
-dr.postw1srs <- drop1(fit.postw1srs, test = "Chisq")
-```
-
-```{r postw1srs, results = "asis"}
-ltx2(fit.postw1srs, dr = dr.postw1srs, caption = "Postneonatal mortality, Skellefteå with inland.", 
-     label = "tab:postw1srs", keep = NULL)
-```
-
-We can conclude from Tables \@ref(tab:postw1sru) and \@ref(tab:postw1srs) that the main difference between Umeå and Skellefteå is that
-*climate* has more severe effect in Skellefteå (with inland), while *weather* is less important.
-
-The effects of temperature in different social classes are best shown graphically, see 
-Figure \@ref(fig:socw1).
-
-```{r socw1, fig.cap = "Interactions between social status and temperature, winter."}
+```{r plotwcs, fig.cap = "Socioeconomic status and expTemp, winter. Postneonatal mortality.", fig.height = 3}
 source("R/socfig.R")
-oldpar <- par(mfrow = c(1,3))
-tempdat <- tabpost[(!tabpost$summer), ]
-fit <- tpchreg(formem, data = tempdat, time = age)
-fitex <- tpchreg(formex, data = tempdat, time = age)
-fitex1 <- tpchreg(formex1, data = tempdat, time = age)
-socfig(coef(fit), main = "Weekly mean temp")
-socfig(coef(fitex), main = "Excess temp", ran = c(-10, 10))
-socfig(coef(fitex1), main = "Lagged excess temp", ran = c(-10, 10))
-par(oldpar)
+fitw <- coxreg(Surv(enter, exit, event) ~ socst:expTemp + socst, data = winter)
+fitw0 <- coxreg(Surv(enter, exit, event) ~ socst + expTemp, data = winter)
+p <- anova(fitw, fitw0)[[4]][2]
+rang <- range(winter$expTemp)
+socfig(coef(fitw), main = "", pval = p, ran = rang, ymax = 8)
+```
+
+The interaction between social status and marginTemp is shown in Figure \@ref(fig:plotwws). Here the situation
+is different for the upper class: It follows essentially the same path (on a lower level) as the rest.
+
+```{r plotwws, fig.cap = "Socioeconomic status and marginTemp, winter. Postneonatal mortality.", fig.height = 3}
+source("R/socfig.R")
+fitww <- coxreg(Surv(enter, exit, event) ~ socst:marginTemp + socst, data = winter)
+fitww0 <- coxreg(Surv(enter, exit, event) ~ socst + marginTemp, data = winter)
+p <- anova(fitww, fitww0)[[4]][2]
+rang <- range(winter$marginTemp)
+socfig(coef(fitww), main = "", pval = p, ran = rang, ymax = 8)
 ```
 
 
 
 ### Summer
 
+See Table \@ref(tab:allpneos) for summer results. The normal temperature variation 
+still has a strong importance, while temporary variations on the margin have a  
+slightly lower effect on the postneonatal mortality.
 
-```{r postanalsp, results='asis', cache = TRUE}
-##summer <- gtpneo[gtpneo$summer == 1, ]
-##summer$season <- factor(summer$season)
-
-fit.posts <- tpchreg(oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socst + urban + period + 
-                        subreg + parity + sex, 
-                    data = tabpost[tabpost$summer, ], time = age)
-dr <- drop1(fit.posts, test = "Chisq")
+```{r allpneos, results = "asis", cache = TRUE}
+summer <- pneo[pneo$summer, ]
+fit.pneos <- coxreg(Surv(enter, exit, event) ~ expTemp + marginTemp + sex + socst + urban +
+                         parity + I(year - 1920), data = summer)
+drs <- drop1(fit.pneos, test = "Chisq")
+ltx(fit.pneos, dr = drs, caption = "Postneonatal mortality, summer.", label = "tab:allpneos")
 ```
 
+The interaction between social status and expTemp is shown in Figure \@ref(fig:plotscs).
+The impression is that the upper class suffer more of higher expected temperature (that is, 
+the months July and August) than farmers and workers, with lower white collars and qualified workers somwhere in between.
 
-```{r postanals, results='asis', cache = FALSE}
-ltx2(fit.posts, dr = dr, caption = "Postneonatal mortality, April to September. Adjusted for sex, parity, time period, and subregion.", label = "tab:postanals", keep = NULL)
-```
-
-The result in Table \@ref(tab:postanals) shows that *climate* (`emeantemp`) is more important than 
-*weather* (`exTemp`). Moreover, no signs of interaction between weather or climate and the rest of 
-covariates (not shown).
-
-#### The full time period
-
-```{r posts1p, results = "asis"}
-fit.posts1 <- tpchreg(form, data = tabpost[(tabpost$summer), ], time = age)
-dr.posts1 <- drop1(fit.posts1, test = "Chisq")
-```
-
-```{r posts1, results = "asis", cache = FALSE}
-ltx2(fit.posts1, dr = dr.posts1, caption = "Postneonatal mortality, October to March.", 
-     label = "tab:posts1", keep = NULL)
-```
-
-Table \@ref(tab:posts1) shows that the effects of  extreme temperatures have the expected directions, extra high temperatures is *positive* 
-(remember that this concerns summer conditions), but not statistically significant. *Climate* (emeantemp), on the other hand shows to be very
-important, where increasing temperature by one degree lower mortality by 0.7 per cent. The normal short term fluctuations (extemp) are not so important, 
-but in the expected direction. 
-
-The importance of social class (socBranch) in explaining the effects of climate and weather is negligible, but there is variation between
-the regions regarding *climate*: 
-
-```{r posts1srpu, cache = TRUE}
-fit.posts1sru <- tpchreg(oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socst + urban + sex + parity, 
-                        data = tabpost[(tabpost$summer) & tabpost$subreg == "ume", ], time = age)
-dr.posts1sru <- drop1(fit.posts1sru, test = "Chisq")
-```
-
-```{r posts1sru, results = "asis"}
-ltx2(fit.posts1sru, dr = dr.posts1sru, caption = "Postneonatal mortality, Umeå, October to March.",
-     label = "tab:posts1sru", keep = NULL)
-```
-
-```{r posts1srps, cache = TRUE}
-fit.posts1srs <- tpchreg(oe(event, exposure) ~ extemp + extemp.1 + emeantemp + socst + urban + sex + parity, 
-                        data = tabpost[(tabpost$summer) & tabpost$subreg != "ume", ], time = age)
-dr.posts1srs <- drop1(fit.posts1srs, test = "Chisq")
-```
-
-```{r posts1srs, results = "asis"}
-ltx2(fit.posts1srs, dr = dr.posts1srs, caption = "Postneonatal mortality, Skellefteå with inland, October to March.", 
-     label = "tab:posts1srs", keep = NULL)
-```
-
-We can conclude from Tables \@ref(tab:posts1sru) and \@ref(tab:posts1srs) that the main difference between Umeå and Skellefteå is that
-*climate* has more severe effect in Skellefteå (with inland), while *weather* is less important.
-
-The effects of temperature in different social classes are best shown graphically, see 
-Figure \@ref(fig:soc2).
-
-```{r soc1, fig.cap = "Interactions between social status and temperature, summer."}
+```{r plotscs, fig.cap = "Socioeconomic status and expTemp, summer. Postneonatal mortality.", cache = TRUE, fig.height = 3}
 source("R/socfig.R")
-oldpar <- par(mfrow = c(1,3))
-tempdat <- tabpost[(tabpost$summer), ]
-fit <- tpchreg(formem, data = tempdat, time = age)
-fitex <- tpchreg(formex, data = tempdat, time = age)
-fitex1 <- tpchreg(formex1, data = tempdat, time = age)
-socfig(coef(fit), main = "Weekly mean temp")
-socfig(coef(fitex), main = "Excess temp", ran = c(-10, 10))
-socfig(coef(fitex1), main = "Lagged excess temp", ran = c(-10, 10))
-par(oldpar)
+fits <- coxreg(Surv(enter, exit, event) ~ socst:expTemp + socst, data = summer)
+fits0 <- coxreg(Surv(enter, exit, event) ~ socst + expTemp, data = summer)
+p <- anova(fits, fits0)[[4]][2]
+rang <- range(summer$expTemp)
+socfig(coef(fits), main = "", pval = p, ran = rang, ymax = 8)
+```
+
+The interaction between social status and marginTemp is shown in Figure \@ref(fig:plotsws). 
+The pattern on the margin very much resembles that of the expected variations. 
+
+```{r plotsws, fig.cap = "Socioeconomic status and marginTemp, summer. Postneonatal mortality.", cache = TRUE, fig.height = 3}
+source("R/socfig.R")
+fitsw <- coxreg(Surv(enter, exit, event) ~ socst:marginTemp + socst, data = summer)
+fitsw0 <- coxreg(Surv(enter, exit, event) ~ socst + marginTemp, data = summer)
+p <- anova(fitsw, fitsw0)[[4]][2]
+rang <- range(summer$marginTemp)
+socfig(coef(fitsw), main = "", pval = p, ran = rang, ymax = 8 )
 ```
 
 
 # Conclusion
 
-Remains to be written, especially the discussion about temperature and mortality. 
+In this study, we differentiate between neonatal and post-neonatal mortality in an effort to understand the role of resources to protect infants from both normal and extreme ambient temperatures in northern Sweden 1895-1950. Our results show that, like in other parts of Sweden, continuously declining infant mortality. They show that the health penalty if living in a city has disappeared among infants [@scb69]. They also show the typical u-shape mortality pattern of birth-order and higher mortality for boys than girls. The neonatal mortality was about the same for all social groups in the winter and slightly lower for children of higher social classes in the summer. This is much as expected since mortality shortly after birth often is not related to social and economic resources but to specific maternal factors, what Bourgeois-Pichat calls endogenous factors. Still, external factors, such as ambient temperature, affects mortality in first month of life. It is not so much extremely low or high temperatures that are important but the seasonality, the annual variation, in temperature and particularly the low temperature during the winter season. The way temperature affect different social groups are small but slightly larger in extreme weather conditions. 
+
+For postneonatal mortality, we find a similar decline, a u-shaped patter for birth-order, and higher mortality for boys than for girls, as for neonatal mortality. We find much larger social differences in mortality than during the first months of life, similar to what has been found for southern Sweden [@dk21]. In fact, during the summer mortality among children of lower white collar, farmers, and workers are twice as high comparative to children of higher classes.
+
+During the winter, the differences are even larger. The effects of temperature are also much larger and, again, the effect the normal seasonal variation that mattered the most, especially for mortality during the summer season. Thus, postneonatal mortality was much more sensitive than neonatal mortality, both to parental and external factors. The ways that temperature affects different social groups are also much more pronounced than during the first month of life. Summer temperatures have no impact on mortality among children of higher classes, neither normal variation nor extreme situations. Other social groups have higher mortality during cold summer weeks. Turning to the effects of winter temperatures, while the normal seasonally, that is the average weekly temperature, has a strong influence on postneonatal mortality among all other social classes, it has no impact at all on white-collar workers. Extremely cold winters, however, also affects children of white-collar workers. Still, the differences are not statistically significant possibly due to the fact that higher white collar was a small group in this period.
+
+Taken together, we find that postneonatal mortality is far more sensitive both to individual, family, and external factors, such as temperature, than mortality in first month of life. During normal temperature variations, children of higher classes did not suffer from increased mortality, only during extremely cold winters. The fact that children of higher classes do not suffer from increased mortality during normal winter suggests that the effect of low temperature is not due to low humidity, which would affect all classes similarly, but to temperature itself.
+
+# Session info
 
 Used processing time (seconds):
 
@@ -769,3 +817,4 @@ proc.time() - starttid
 
 
 Done: `r sluttid`.
+

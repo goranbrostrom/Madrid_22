@@ -51,6 +51,7 @@ tempdat <- function(filename = "ume", period = c(1894, 1951)){
     temp$cold.1 <- c(NA, temp$cold[-n])
     temp$extemp.1 <- c(NA, temp$extemp[-n])
     temp$heat.1 <- c(NA, temp$heat[-n])
+    temp$emeantemp.1 <- c(NA, temp$emeantemp[-n])
     ##
     temp
 }
