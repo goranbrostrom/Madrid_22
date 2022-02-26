@@ -117,7 +117,7 @@ abline(h = 0, col = "red")
 
 \emp{Postneonatal:}
 
-\begin{cnter}
+\begin{center}
 \includegraphics[width=0.8\textwidth]{figs/pneodata-1.pdf}
 \end{center}  
   
@@ -340,8 +340,9 @@ Jean \emp{Bourgeois-Pichat} (1951, 1952) would be pleased!
 
 ## Conclusions
 
-*   Season ("expected" temperature, *climate*) more important than deviations from it.
-*   Sensitivity to temperature levels and variations do not vary much by social class
-but is stronger during winter than during summer.
-*   The most privileged are well prepared for variation in climate, but more like the 
-others when it comes to unexpected cold weather during winter. 
+*   \emp{Season} ("expected" temperature, *climate*) more \emp{important} than deviations from it.
+*   \emp{Sensitivity} to temperature levels and variations \emp{do not vary} much by social class
+but is \emp{stronger during winter} than during summer.
+*   The \emp{most privileged} are 
+    +   \emp{well prepared} for variation in \emp{climate}, but 
+    +   more \emp{like the others} when it comes to \emp{unexpected cold} weather during winter. 
