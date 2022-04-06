@@ -58,16 +58,26 @@ normal <- function(period = c(1894, 1951)){
     indx <- tapply(temp$week, temp$week)
     temp$emintemp <- tapply(temp$mintemp, temp$week, mean)[indx]
     temp$emaxtemp <- tapply(temp$maxtemp, temp$week, mean)[indx]
-    temp$emeantemp <- tapply(temp$meantemp, temp$week, mean)[indx]
+    temp$expTemp <- tapply(temp$meantemp, temp$week, mean)[indx]
     temp$heat <- round(temp$maxtemp - temp$emaxtemp)
     temp$cold <- round(temp$mintemp - temp$emintemp)
-    temp$extemp <- round(temp$meantemp - temp$emeantemp)
+    temp$margTemp <- round(temp$meantemp - temp$expTemp)
     # NEW 28 Jan 2022:
     n <- NROW(temp)
     temp$cold.1 <- c(NA, temp$cold[-n])
-    temp$extemp.1 <- c(NA, temp$extemp[-n])
+    temp$margTemp.1 <- c(NA, temp$margTemp[-n])
     temp$heat.1 <- c(NA, temp$heat[-n])
-    temp$emeantemp.1 <- c(NA, temp$emeantemp[-n])
+    temp$expTemp.1 <- c(NA, temp$expTemp[-n])
+    ##
+    ## New 28 March 2022:
+    temp$margTemp.2 <- c(NA, temp$margTemp.1[-n])
+    temp$expTemp.2 <- c(NA, temp$expTemp.1[-n])
+    ## New 28 March 2022:
+    temp$margTemp.3 <- c(NA, temp$margTemp.2[-n])
+    temp$expTemp.3 <- c(NA, temp$expTemp.2[-n])
+    ## New 28 March 2022:
+    temp$margTemp.4 <- c(NA, temp$margTemp.3[-n])
+    temp$expTemp.4 <- c(NA, temp$expTemp.3[-n])
     ##
     temp
 }

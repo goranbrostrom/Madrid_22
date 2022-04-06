@@ -1,5 +1,5 @@
 ---
-title: "A biometric analysis of infant mortality and temperature, northern Sweden 1895--1950"
+title: "Infant mortality and temperature, northern Sweden 1895--1950"
 author: "Göran Broström and Tommy Bengtsson"
 date: "`r Sys.time()`"
 output:
@@ -30,7 +30,7 @@ header-includes:
 - \usepackage{a4wide}
 - \usepackage[tablesonly]{endfloat}
 - \renewcommand{\efloatseparator}{\mbox{}}
-abstract: "The effect of extreme temperatures on infant mortality in the Umeå and Skellefteå regions 1895--1950 is studied in a biometric analysis setting. More precisely, the effect of climate and weather, measured by temperature, average and extremes, on infant mortality is investigated. The main question is to what extent temperature, directly or indirectly via humidity, affect the survival of infants and to what extent it depends on the resources of the family. It turns out that the normal seasonality (the average temperature) is generally more important than the extremes (the deviations), low average temperatures are more important than temporary dips in temperature, but effects are different in neonatal and postneonatal settings. It is at normal temperatures that we expect the resources of the family to be of most importance, and this is also what we find. In extremely cold winters, also the children of the higher classes suffered from increased postneonatal mortality."
+abstract: "The effect of extreme temperatures on infant mortality in the Umeå and Skellefteå regions 1895--1950 is studied. More precisely, the effect of climate and weather, measured by temperature, average and extremes, on infant mortality is investigated. The main question is to what extent temperature, directly or indirectly via humidity, affect the survival of infants and to what extent it depends on the resources of the family. It turns out that the normal seasonality (the average temperature) is generally more important than the extremes (the deviations), low average temperatures are more important than temporary dips in temperature, but effects are different in neonatal and postneonatal settings. It is at normal temperatures that we expect the resources of the family to be of most importance, and this is also what we find. In extremely cold winters, also the children of the higher classes suffered from increased postneonatal mortality."
 ---
 
 
@@ -49,9 +49,17 @@ par(las = 1, cex.axis = 0.8, cex.lab = 0.8, cex = 0.8)
 
 ```{r readdata}
 births <- readRDS("data/births4.rds")
-infdat <- readRDS("data/infdat4.rds")
-infdat$marginTemp <- round(infdat$extemp.1)
-infdat$expTemp <- round(infdat$emeantemp.1)
+infdat <- readRDS("Rdata/infdat4.rds")
+infdat$margTemp <- round(infdat$margTemp)
+infdat$margTemp.1 <- round(infdat$margTemp.1)
+infdat$margTemp.2 <- round(infdat$margTemp.2)
+infdat$margTemp.3 <- round(infdat$margTemp.3)
+infdat$margTemp.4 <- round(infdat$margTemp.4)
+infdat$expTemp <- round(infdat$expTemp)
+infdat$expTemp.1 <- round(infdat$expTemp.1)
+infdat$expTemp.2 <- round(infdat$expTemp.2)
+infdat$expTemp.3 <- round(infdat$expTemp.3)
+infdat$expTemp.4 <- round(infdat$expTemp.4)
 ```
 # Introduction
 
@@ -358,11 +366,11 @@ levels(infdat$subreg) <- c("ume", "ske", "inland")
 ##infdat$lowTemp <- (infdat$extemp + infdat$extemp.1) < -10  # CHECK THIS!!
 ##infdat$highTemp <- infdat$extemp + infdat$extemp.1 > 10
 ##infdat$lowTemp <- with(infdat, (extemp < -3) & (extemp.1 < -3))
-infdat$lowTemp <- (with(infdat, cold + cold.1 < -10))
-infdat$highTemp <- with(infdat, (extemp > 3) & (extemp.1 > 3))
+##infdat$lowTemp <- (with(infdat, cold + cold.1 < -10))
+##infdat$highTemp <- with(infdat, (extemp > 3) & (extemp.1 > 3))
 ##infdat$weather <- infdat$extemp.1
 ##infdat$climate <- round(infdat$emeantemp)
-tbl(head(infdat[, c("enter", "exit", "event", "marginTemp", "expTemp", "week", "year")]),
+tbl(head(infdat[, c("enter", "exit", "event", "margTemp.1", "expTemp.1", "week", "year")]),
     caption = "Data with communal covariates.", fs = 11)
 ```
 
@@ -563,38 +571,6 @@ legend("topright", legend = c("Truncated Weibull", "Piecewise constant"), col = 
 
 A perfect fit!
 
-In the following we split the analyses into the neonatal and the postneonatal periods, with
-a focus on the latter. But we start with a short comment on the link to *biometric* analysis
-à la @bp51a.
-
-## The biometric finding
-
-What happens if we extend the truncated Weibull back into neonatal territory? The answer
-is given in Figure \@ref(fig:neowei).
-
-```{r neowei, fig.cap = "Weibull hazard functions, total and exogenous neonatal mortality.", fig.height = 4}
-b3 <- age.window(b1, c(0, 28 / 365))
-fit.w0 <- phreg(Surv(enter, exit, event) ~ 1, data = b3)
-plot(fit.w0, fn = "haz", axes = FALSE, xlab = "Days", main = "", lwd = 1.5, col = "red", ylim = c(0, 3))
-#fit.ph <- tpchreg(oe(event, exposure) ~ 1, data = inftab, time = age)
-##plot(fit.ph1, fn = "haz", axes = FALSE, xlab = "Days", main = "", lwd = 1.5, col = "red",
-  ##   xlim = c(0, 28 / 365))
-dor <- seq(0, 28, by = 2)
-axis(1, at = dor / 365, labels = dor)
-axis(2, las = 1)
-box()
-##abline(v = 28 / 365, lty = 3)
-abline( h = 0, v = 0)
-pars <- exp(fit$coefficients)
-x <- seq(0, 28/365, length = 1000)
-y <- hweibull(x, shape = pars[2], scale = pars[1])
-lines(x, y, col = "blue", lwd = 1.5)
-legend("topright", legend = c("Weibull postneonatal (exogenous), extrapolated", "Weibull neonatal (total)"), col = c("blue", "red"), lwd = c(1.5, 1))
-```
-
-Not very good fit in this territory. The difference here is that to the exogenous mortality, endogenous mortality is added.
-The difference between the piecewise constant and the Weibull in the figure would be 
-called the *endogeneous infant mortality* [@bp51a; @bp51b].
 
 ## Neonatal mortality
 
@@ -614,7 +590,8 @@ Separate analyses for winter and summer, see Tables \@ref(tab:neowinter) and
 ```{r neowinter, results = "asis"}
 ##neo$marginTemp <- neo$extemp.1
 ##neo$expTemp <- neo$emeantemp.1
-fit.neow <- coxreg(Surv(enter, exit, event) ~ expTemp + marginTemp + socst + 
+fit.neow <- coxreg(Surv(enter, exit, event) ~ expTemp + expTemp.1 + expTemp.2 + expTemp.3 + expTemp.4 + 
+                       margTemp + margTemp.1 + margTemp.2 + margTemp.3 + margTemp.4 + socst + 
                       sex + urban + parity + I(year - 1920),
                   data = neo[!neo$summer, ])
 drw <- drop1(fit.neow, test = "Chisq")
@@ -646,10 +623,10 @@ bad marginTemp hits all by the same strength.
 
 ```{r plotwwsn, fig.cap = "Socioeconomic status and marginTemp, winter. Neonatal mortality.", fig.height = 3}
 source("R/socfig.R")
-fitww <- coxreg(Surv(enter, exit, event) ~ socst:marginTemp + socst, data = winter)
-fitww0 <- coxreg(Surv(enter, exit, event) ~ socst + marginTemp, data = winter)
+fitww <- coxreg(Surv(enter, exit, event) ~ socst:margTemp + socst, data = winter)
+fitww0 <- coxreg(Surv(enter, exit, event) ~ socst + margTemp, data = winter)
 p <- anova(fitww, fitww0)[[4]][2]
-rang <- range(winter$marginTemp)
+rang <- range(winter$margTemp)
 socfig(coef(fitww), main = "", pval = p, ran = rang, ymax = 4)
 ```
 
@@ -660,9 +637,9 @@ Compared to winter, the *expTemp* effect is in the same direction but weaker, wh
 the effect of *marginTemp* is zero.
 
 ```{r neosummer, results = "asis"}
-##neo$marginTemp <- neo$extemp.1
+##neo$margTemp <- neo$extemp.1
 ##neo$expTemp <- neo$emeantemp.1
-fit.neos <- coxreg(Surv(enter, exit, event) ~ expTemp + marginTemp + socst + 
+fit.neos <- coxreg(Surv(enter, exit, event) ~ expTemp + margTemp + socst + 
                       sex + urban + parity + I(year - 1920),
                   data = neo[neo$summer, ])
 ##data = neo[neo$week %in% 20:32, ])
@@ -671,7 +648,7 @@ ltx(fit.neos, dr = drs, caption = "Neonatal mortality, summer.", label = "tab:ne
 ```
 
 
-During summer, expTemp and marginTemp effects are clearly smaller, and regarding marginTemp, the opposite 
+During summer, expTemp and margTemp effects are clearly smaller, and regarding margTemp, the opposite 
 direction: Excess heat increases the death risk, however not very much and not statistically significant. 
 
 The interaction between social status and *expTemp* is shown in Figure \@ref(fig:plotscsn). 
@@ -687,15 +664,15 @@ rang <- range(summer$expTemp)
 socfig(coef(fits), main = "", pval = p, ran = rang, ymax = 4)
 ```
 
-The interaction between social status and *marginTemp* is shown in Figure \@ref(fig:plotswsn). The same conclusion as 
+The interaction between social status and *margTemp* is shown in Figure \@ref(fig:plotswsn). The same conclusion as 
 for *expTemp*, nothing of interest shows up.
 
-```{r plotswsn, fig.cap = "Socioeconomic status and marginTemp, summer. Neonatal mortality.", fig.height = 3}
+```{r plotswsn, fig.cap = "Socioeconomic status and margTemp, summer. Neonatal mortality.", fig.height = 3}
 source("R/socfig.R")
-fitsw <- coxreg(Surv(enter, exit, event) ~ socst:marginTemp + socst, data = summer)
-fitsw0 <- coxreg(Surv(enter, exit, event) ~ socst + marginTemp, data = summer)
+fitsw <- coxreg(Surv(enter, exit, event) ~ socst:margTemp + socst, data = summer)
+fitsw0 <- coxreg(Surv(enter, exit, event) ~ socst + margTemp, data = summer)
 p <- anova(fitsw, fitsw0)[[4]][2]
-rang <- range(summer$marginTemp)
+rang <- range(summer$margTemp)
 socfig(coef(fitsw), main = "", pval = p, ran = rang, ymax = 4)
 ```
 
@@ -721,9 +698,9 @@ temperature effect, however not so pregnant as fot the expTemp.
 
 ```{r allpneo, results = "asis", cache = TRUE}
 ##pneo$expTemp <- pneo$eexpTemp.1
-##pneo$marginTemp <- pneo$extemp.1
+##pneo$margTemp <- pneo$extemp.1
 winter <- pneo[!pneo$summer, ]
-fit.pneo <- coxreg(Surv(enter, exit, event) ~ expTemp + marginTemp + sex + socst +
+fit.pneo <- coxreg(Surv(enter, exit, event) ~ expTemp + margTemp + sex + socst +
                         urban + parity + I(year - 1920), data = winter)
 dr <- drop1(fit.pneo, test = "Chisq")
 ltx(fit.pneo, dr = dr, caption = "Postneonatal mortality, winter.", label = "tab:allpneo")
@@ -742,15 +719,15 @@ rang <- range(winter$expTemp)
 socfig(coef(fitw), main = "", pval = p, ran = rang, ymax = 8)
 ```
 
-The interaction between social status and marginTemp is shown in Figure \@ref(fig:plotwws). Here the situation
+The interaction between social status and margTemp is shown in Figure \@ref(fig:plotwws). Here the situation
 is different for the upper class: It follows essentially the same path (on a lower level) as the rest.
 
-```{r plotwws, fig.cap = "Socioeconomic status and marginTemp, winter. Postneonatal mortality.", fig.height = 3}
+```{r plotwws, fig.cap = "Socioeconomic status and margTemp, winter. Postneonatal mortality.", fig.height = 3}
 source("R/socfig.R")
-fitww <- coxreg(Surv(enter, exit, event) ~ socst:marginTemp + socst, data = winter)
-fitww0 <- coxreg(Surv(enter, exit, event) ~ socst + marginTemp, data = winter)
+fitww <- coxreg(Surv(enter, exit, event) ~ socst:margTemp + socst, data = winter)
+fitww0 <- coxreg(Surv(enter, exit, event) ~ socst + margTemp, data = winter)
 p <- anova(fitww, fitww0)[[4]][2]
-rang <- range(winter$marginTemp)
+rang <- range(winter$margTemp)
 socfig(coef(fitww), main = "", pval = p, ran = rang, ymax = 8)
 ```
 
@@ -764,7 +741,7 @@ slightly lower effect on the postneonatal mortality.
 
 ```{r allpneos, results = "asis", cache = TRUE}
 summer <- pneo[pneo$summer, ]
-fit.pneos <- coxreg(Surv(enter, exit, event) ~ expTemp + marginTemp + sex + socst + urban +
+fit.pneos <- coxreg(Surv(enter, exit, event) ~ expTemp + margTemp + sex + socst + urban +
                          parity + I(year - 1920), data = summer)
 drs <- drop1(fit.pneos, test = "Chisq")
 ltx(fit.pneos, dr = drs, caption = "Postneonatal mortality, summer.", label = "tab:allpneos")
@@ -783,15 +760,15 @@ rang <- range(summer$expTemp)
 socfig(coef(fits), main = "", pval = p, ran = rang, ymax = 8)
 ```
 
-The interaction between social status and marginTemp is shown in Figure \@ref(fig:plotsws). 
+The interaction between social status and margTemp is shown in Figure \@ref(fig:plotsws). 
 The pattern on the margin very much resembles that of the expected variations. 
 
-```{r plotsws, fig.cap = "Socioeconomic status and marginTemp, summer. Postneonatal mortality.", cache = TRUE, fig.height = 3}
+```{r plotsws, fig.cap = "Socioeconomic status and margTemp, summer. Postneonatal mortality.", cache = TRUE, fig.height = 3}
 source("R/socfig.R")
-fitsw <- coxreg(Surv(enter, exit, event) ~ socst:marginTemp + socst, data = summer)
-fitsw0 <- coxreg(Surv(enter, exit, event) ~ socst + marginTemp, data = summer)
+fitsw <- coxreg(Surv(enter, exit, event) ~ socst:margTemp + socst, data = summer)
+fitsw0 <- coxreg(Surv(enter, exit, event) ~ socst + margTemp, data = summer)
 p <- anova(fitsw, fitsw0)[[4]][2]
-rang <- range(summer$marginTemp)
+rang <- range(summer$margTemp)
 socfig(coef(fitsw), main = "", pval = p, ran = rang, ymax = 8 )
 ```
 

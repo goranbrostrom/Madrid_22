@@ -1,5 +1,5 @@
 ---
-title: "getdata4.Rmd"
+title: "getdata.Rmd"
 author: "Göran Broström"
 date: "`r Sys.Date()`"
 output:
@@ -23,7 +23,7 @@ Added *urban* on 12 February 2022.
 
 Created 6 February 2022 after consultations.
 
-** Run this (and only this) before running "paper4.Rmd"!**
+** Run this (and only this) before running "paper.Rmd"!**
 
 We start with *skum::persons*  and age is to begin with in days,
 with stillbirths  *removed* and born alive but dead on birthday at age 0.25 days.
@@ -160,8 +160,9 @@ temp_ivl <- c(temp_start, temp_end)
 ##
 
 lagg <- 0 / 365 ##3 / 365  ## NOTE!!
-tempvars <-  c("heat", "heat.1", "extemp", "extemp.1", "cold", "cold.1", "emintemp", "emeantemp", "emeantemp.1",  "emaxtemp", 
-               "week", "year") 
+##tempvars <-  c("heat", "heat.1", "extemp", "extemp.1", "cold", "cold.1", "emintemp", "emeantemp", "emeantemp.1",  "emaxtemp", 
+  ##             "week", "year")
+tempvars <- c("expTemp", paste0("expTemp.", 1:4), "margTemp", paste0("margTemp.", 1:4), "week", "year")
 ## Ume:
 bume <- per[per$subreg == "ume", ]
 bume <- make.communal(bume, umetemp[, tempvars], 
@@ -191,7 +192,7 @@ infdat <- infdat[order(infdat$id, infdat$enter), c("subreg", "id", "sex", "enter
 ##infdat <- rc(infdat) # rc from 'skum'
 ##n <- NROW(infdat)
 
-saveRDS(infdat, file = "data/infdat4.rds") # NOTE: Name change!!!
+saveRDS(infdat, file = "Rdata/infdat4.rds") # NOTE: Name change!!!
 
 ## Wait with this:
 ## tabdat4 <- toTpch(Surv(enter, exit, event) ~ subreg + sex + birthmonth + socBranch + illeg + parity 
